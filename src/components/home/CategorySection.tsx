@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '@/config/api';
@@ -54,12 +54,7 @@ export default function CategorySection() {
               onClick={() => handleCategoryClick(category.id)}
             >
               <div className="relative w-full h-[150px] rounded-lg overflow-hidden">
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  className="object-cover"
-                />
+                <Image src={category.image} alt={category.name} fill className="object-cover" />
               </div>
               <p className="text-center mt-2 font-medium">{category.name}</p>
             </div>
@@ -69,4 +64,4 @@ export default function CategorySection() {
       </ScrollArea>
     </section>
   );
-} 
+}

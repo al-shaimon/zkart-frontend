@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, ShoppingCart, User } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Search } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
+import SearchCommand from './search/SearchCommand';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   const renderAuthLinks = () => {
@@ -45,13 +47,16 @@ export default function Navbar() {
   return (
     <nav className="bg-foreground text-background sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold">
+        <div className="flex items-center h-16 gap-4">
+          <Link href="/" className="text-xl font-bold flex-shrink-0">
             ZKart
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex flex-1 max-w-2xl mx-auto">
+            <SearchCommand isOpen={isSearchOpen} onOpenChange={setIsSearchOpen} />
+          </div>
+
+          <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             <Link href="/products" className="hover:text-gray-300">
               Products
             </Link>
@@ -66,37 +71,32 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="flex items-center gap-2 md:hidden flex-1 justify-end">
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="p-2 hover:bg-gray-700 rounded-full"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:text-gray-300"
+              className="p-2 hover:bg-gray-700 rounded-full"
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link
-                href="/products"
-                className="block px-3 py-2 rounded-md hover:bg-gray-700"
-              >
+          <div className="md:hidden border-t border-gray-700">
+            <div className="py-2 space-y-1">
+              <Link href="/products" className="block px-4 py-2 hover:bg-gray-700 rounded-md">
                 Products
               </Link>
-              <Link
-                href="/categories"
-                className="block px-3 py-2 rounded-md hover:bg-gray-700"
-              >
+              <Link href="/categories" className="block px-4 py-2 hover:bg-gray-700 rounded-md">
                 Categories
               </Link>
-              <Link
-                href="/cart"
-                className="block px-3 py-2 rounded-md hover:bg-gray-700"
-              >
+              <Link href="/cart" className="block px-4 py-2 hover:bg-gray-700 rounded-md">
                 Cart
               </Link>
               {renderAuthLinks()}

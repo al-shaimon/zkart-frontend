@@ -83,3 +83,13 @@ body {
   opacity: 1 !important;
   background: white !important;
 }
+
+/* Add these styles for better star icon rendering */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+}
+
+.star-rating svg {
+  stroke-width: 1.5;
+}
