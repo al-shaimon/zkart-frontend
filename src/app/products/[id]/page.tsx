@@ -3,21 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Store, Minus, Plus } from 'lucide-react';
+import { Store } from 'lucide-react';
 import { Product } from '@/types/api';
 import { API_BASE_URL } from '@/config/api';
 import Rating from '@/components/ui/Rating';
 import ProductImageGallery from '@/components/products/ProductImageGallery';
 import RelatedProducts from '@/components/products/RelatedProducts';
 import ProductReviews from '@/components/products/ProductReviews';
-import { Button } from '@/components/ui/button';
 import ProductDetailsSkeleton from '@/components/products/ProductDetailsSkeleton';
+import AddToCartButton from '@/components/products/AddToCartButton';
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -36,19 +35,6 @@ export default function ProductDetails() {
       fetchProduct();
     }
   }, [id]);
-
-  const handleDecrement = () => {
-    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
-  };
-
-  const handleIncrement = () => {
-    setQuantity((prev) => (prev < (product?.stock || 1) ? prev + 1 : prev));
-  };
-
-  const handleAddToCart = () => {
-    // TODO: Implement add to cart functionality
-    console.log('Adding to cart:', { productId: id, quantity });
-  };
 
   if (loading) {
     return <ProductDetailsSkeleton />;
@@ -111,32 +97,14 @@ export default function ProductDetails() {
             <p>{product.description}</p>
           </div>
 
-          {/* Quantity Counter and Add to Cart */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center border rounded-md">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDecrement}
-                disabled={quantity <= 1}
-                className="h-10 px-3 hover:bg-gray-100"
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-              <div className="w-12 text-center">{quantity}</div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleIncrement}
-                disabled={quantity >= product.stock}
-                className="h-10 px-3 hover:bg-gray-100"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            <Button onClick={handleAddToCart} disabled={product.stock === 0}>
-              {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-            </Button>
+          {/* Add to Cart */}
+          <div className="lg:w-1/2">
+            <AddToCartButton
+              productId={product.id}
+              shopId={product.shop.id}
+              stock={product.stock}
+              showQuantity={true}
+            />
           </div>
 
           {/* Stock Status */}

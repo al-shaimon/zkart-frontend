@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Menu, X, ShoppingCart, Search, User, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import SearchCommand from './search/SearchCommand';
+import CartIcon from './cart/CartIcon';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -126,9 +127,7 @@ export default function Navbar() {
             <Link href="/categories" className="hover:text-gray-300">
               Categories
             </Link>
-            <Link href="/cart" className="hover:text-gray-300">
-              <ShoppingCart className="h-6 w-6" />
-            </Link>
+            <CartIcon />
             <div className="relative" ref={dropdownRef}>
               <button onClick={handleUserIconClick} className="hover:text-gray-300">
                 <User className="h-6 w-6" />

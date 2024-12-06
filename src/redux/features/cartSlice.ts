@@ -1,24 +1,28 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '@/config/api';
-import { toast } from 'sonner';
 
-interface CartItem {
+interface Product {
   id: string;
-  productId: string;
-  quantity: number;
-  product: {
+  name: string;
+  price: number;
+  image: string;
+  stock: number;
+  shop?: {
+    id: string;
     name: string;
-    price: number;
-    image: string;
-    stock: number;
-    shop: {
-      id: string;
-      name: string;
-    };
   };
 }
 
+interface CartItem {
+  id: string;
+  quantity: number;
+  cartId: string;
+  productId: string;
+  product: Product;
+}
+
 interface CartState {
+  id: string | null;
   items: CartItem[];
   shopId: string | null;
   loading: boolean;
@@ -27,6 +31,7 @@ interface CartState {
 }
 
 const initialState: CartState = {
+  id: null,
   items: [],
   shopId: null,
   loading: false,
@@ -34,39 +39,37 @@ const initialState: CartState = {
   totalAmount: 0,
 };
 
+// Helper function to get token
+const getToken = () => localStorage.getItem('token');
+
 // Async thunks
 export const fetchCart = createAsyncThunk('cart/fetchCart', async () => {
+  const token = getToken();
   const response = await fetch(`${API_BASE_URL}/cart`, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
+      Authorization: token || '',
     },
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message);
-  return data.data;
+  return {
+    id: null,
+    items: [],
+    shopId: null,
+    totalAmount: 0,
+    ...data.data
+  };
 });
 
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ productId, quantity, shopId }: { productId: string; quantity: number; shopId: string }, { getState }) => {
-    const state = getState() as { cart: CartState };
-    
-    // Check if adding product from different shop
-    if (state.cart.shopId && state.cart.shopId !== shopId) {
-      const confirmChange = window.confirm(
-        'Adding products from a different shop will clear your current cart. Do you want to continue?'
-      );
-      
-      if (!confirmChange) {
-        throw new Error('Cancelled adding product from different shop');
-      }
-    }
-
+  async ({ productId, quantity }: { productId: string; quantity: number }) => {
+    const token = getToken();
     const response = await fetch(`${API_BASE_URL}/cart/add-to-cart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: token || '',
       },
       body: JSON.stringify({ productId, quantity }),
     });
@@ -79,12 +82,13 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartItemQuantity = createAsyncThunk(
   'cart/updateQuantity',
-  async ({ productId, quantity }: { productId: string; quantity: number }) => {
-    const response = await fetch(`${API_BASE_URL}/cart/item/${productId}`, {
+  async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/cart/item/${itemId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: token || '',
       },
       body: JSON.stringify({ quantity }),
     });
@@ -97,19 +101,34 @@ export const updateCartItemQuantity = createAsyncThunk(
 
 export const removeFromCart = createAsyncThunk(
   'cart/removeItem',
-  async (productId: string) => {
-    const response = await fetch(`${API_BASE_URL}/cart/item/${productId}`, {
+  async (itemId: string) => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/cart/item/${itemId}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: token || '',
       },
     });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
-    return productId;
+    return itemId;
   }
 );
+
+export const clearCart = createAsyncThunk('cart/clear', async () => {
+  const token = getToken();
+  const response = await fetch(`${API_BASE_URL}/cart/clear`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: token || '',
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message);
+  return data.data;
+});
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -123,6 +142,7 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
+        state.id = action.payload.id;
         state.items = action.payload.items;
         state.shopId = action.payload.shopId;
         state.totalAmount = action.payload.totalAmount;
@@ -133,28 +153,33 @@ const cartSlice = createSlice({
       })
       // Add to Cart
       .addCase(addToCart.fulfilled, (state, action) => {
+        state.id = action.payload.id;
         state.items = action.payload.items;
         state.shopId = action.payload.shopId;
         state.totalAmount = action.payload.totalAmount;
-        toast.success('Product added to cart');
-      })
-      .addCase(addToCart.rejected, (state, action) => {
-        state.error = action.error.message || 'Failed to add to cart';
-        toast.error(state.error);
       })
       // Update Quantity
       .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
-        state.items = action.payload.items;
+        const updatedItems = action.payload.items;
+        state.items = state.items.map(item => {
+          const updatedItem = updatedItems.find(i => i.id === item.id);
+          return updatedItem || item;
+        });
         state.totalAmount = action.payload.totalAmount;
-        toast.success('Cart updated');
       })
       // Remove Item
       .addCase(removeFromCart.fulfilled, (state, action) => {
-        state.items = state.items.filter(item => item.productId !== action.payload);
+        state.items = state.items.filter(item => item.id !== action.payload);
         if (state.items.length === 0) {
           state.shopId = null;
         }
-        toast.success('Item removed from cart');
+      })
+      // Clear Cart
+      .addCase(clearCart.fulfilled, (state) => {
+        state.id = null;
+        state.items = [];
+        state.shopId = null;
+        state.totalAmount = 0;
       });
   },
 });

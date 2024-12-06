@@ -29,7 +29,16 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             {children}
-            <Toaster position="top-center" expand={true} richColors />
+            <Toaster 
+              position="top-center" 
+              expand={true} 
+              richColors 
+              closeButton
+              toastOptions={{
+                style: { background: 'hsl(var(--background))', color: 'hsl(var(--foreground))' },
+              }}
+              visibleToasts={1}
+            />
           </AuthProvider>
         </Providers>
       </body>

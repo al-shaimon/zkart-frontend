@@ -1,75 +1,122 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
-import { useAuth } from '@/contexts/auth-context';
-import { useAppDispatch } from '@/redux/hooks';
-import { addToCart } from '@/redux/features/cartSlice';
+import { ShoppingCart, Plus, Minus } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { addToCart, clearCart } from '@/redux/features/cartSlice';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
 interface AddToCartButtonProps {
   productId: string;
   shopId: string;
   stock: number;
+  showQuantity?: boolean;
 }
 
-export default function AddToCartButton({ productId, shopId, stock }: AddToCartButtonProps) {
+export default function AddToCartButton({
+  productId,
+  shopId,
+  stock,
+  showQuantity = false,
+}: AddToCartButtonProps) {
   const dispatch = useAppDispatch();
-  const { user } = useAuth();
-  const router = useRouter();
+  const { shopId: cartShopId } = useAppSelector((state) => state.cart);
+  const [quantity, setQuantity] = useState(1);
 
-  const handleAddToCart = async () => {
-    if (!user) {
-      toast.error('Please login to add items to cart');
-      router.push('/auth/login');
-      return;
-    }
-
-    if (user.role !== 'CUSTOMER') {
-      toast.error('Only customers can add items to cart');
-      return;
-    }
-
-    if (stock === 0) {
-      toast.error('Product is out of stock');
-      return;
-    }
-
-    try {
-      await dispatch(addToCart({ productId, quantity: 1, shopId })).unwrap();
-    } catch {
-      // Error is handled in the slice
+  const handleQuantityChange = (delta: number) => {
+    const newQuantity = quantity + delta;
+    if (newQuantity >= 1 && newQuantity <= stock) {
+      setQuantity(newQuantity);
     }
   };
 
-  // Show different button states based on conditions
-  if (!user) {
-    return (
-      <Button onClick={handleAddToCart} className="w-full">
-        <ShoppingCart className="w-4 h-4 mr-2" />
-        Login to Buy
-      </Button>
-    );
-  }
+  const handleAddToCart = async () => {
+    try {
+      // If cart has items from a different shop
+      if (cartShopId && cartShopId !== shopId) {
+        toast.custom(
+          (t) => (
+            <div className="bg-background border rounded-lg p-4 shadow-lg">
+              <p className="mb-4">
+                You have items from a different shop in your cart. Would you like to clear your cart
+                and add this item?
+              </p>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => toast.dismiss(t)}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await dispatch(clearCart()).unwrap();
+                      await dispatch(addToCart({ productId, quantity })).unwrap();
+                      toast.success('Product added to cart');
+                    } catch {
+                      toast.error('Failed to add product to cart');
+                    }
+                    toast.dismiss(t);
+                  }}
+                >
+                  Clear & Add
+                </Button>
+              </div>
+            </div>
+          ),
+          {
+            duration: 2000,
+          }
+        );
+        return;
+      }
 
-  if (user.role !== 'CUSTOMER') {
+      await dispatch(addToCart({ productId, quantity })).unwrap();
+      toast.success('Product added to cart');
+      // Reset quantity after successful addition
+      setQuantity(1);
+    } catch {
+      toast.error('Failed to add product to cart');
+    }
+  };
+
+  if (!showQuantity) {
     return (
-      <Button disabled className="w-full">
+      <Button onClick={handleAddToCart} disabled={stock === 0} className="w-full">
         <ShoppingCart className="w-4 h-4 mr-2" />
-        Customers Only
+        {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
       </Button>
     );
   }
 
   return (
-    <Button 
-      onClick={handleAddToCart} 
-      disabled={stock === 0}
-      className="w-full"
-    >
-      <ShoppingCart className="w-4 h-4 mr-2" />
-      {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-    </Button>
+    <div className="mt-4 flex  items-center gap-5">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleQuantityChange(-1)}
+            disabled={quantity <= 1}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="w-12 text-center">{quantity}</span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleQuantityChange(1)}
+            disabled={quantity >= stock}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* <span className="text-sm text-muted-foreground">{stock} available</span> */}
+      </div>
+      <Button onClick={handleAddToCart} disabled={stock === 0} className="w-full">
+        <ShoppingCart className="w-4 h-4 mr-2" />
+        {stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+      </Button>
+    </div>
   );
 }
