@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import {
   fetchCart,
   updateCartItemQuantity,
   removeFromCart,
   clearCart,
+  applyCoupon,
 } from '@/redux/features/cartSlice';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, Trash2 } from 'lucide-react';
@@ -15,12 +16,22 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Input } from "@/components/ui/input";
 
 export default function CartPage() {
   const dispatch = useAppDispatch();
-  const { items = [], totalAmount = 0, loading } = useAppSelector((state) => state.cart);
+  const { 
+    items = [], 
+    originalAmount = 0, 
+    discount = 0, 
+    finalAmount = 0, 
+    loading,
+    coupon 
+  } = useAppSelector((state) => state.cart);
   const { user } = useAuth();
   const router = useRouter();
+  const [couponCode, setCouponCode] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -87,6 +98,24 @@ export default function CartPage() {
     );
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+
+    setApplyingCoupon(true);
+    try {
+      await dispatch(applyCoupon(couponCode)).unwrap();
+      toast.success('Coupon applied successfully');
+      setCouponCode(''); // Clear input after successful application
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to apply coupon');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -118,7 +147,7 @@ export default function CartPage() {
 
             return (
               <div key={item.id} className="flex gap-4 border-b py-4">
-                <Link 
+                <Link
                   href={`/products/${item.product.id}`}
                   className="relative w-[100px] h-[100px] hover:opacity-75 transition-opacity"
                 >
@@ -186,15 +215,45 @@ export default function CartPage() {
                 </Button>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>৳{totalAmount}</span>
+                <span>৳{originalAmount}</span>
               </div>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={handleApplyCoupon}
+                    disabled={applyingCoupon}
+                  >
+                    {applyingCoupon ? 'Applying...' : 'Apply'}
+                  </Button>
+                </div>
+                {coupon && (
+                  <div className="text-sm text-green-600">
+                    <div className="flex items-center gap-1">
+                      <span>Coupon {coupon.code} applied</span>
+                    </div>
+                    <div className="text-xs">{coupon.discountMessage}</div>
+                  </div>
+                )}
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>-৳{discount}</span>
+                </div>
+              )}
               <div className="border-t pt-2">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span>৳{totalAmount}</span>
+                  <span>৳{finalAmount}</span>
                 </div>
               </div>
             </div>

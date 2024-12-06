@@ -21,13 +21,24 @@ interface CartItem {
   product: Product;
 }
 
+interface Coupon {
+  code: string;
+  discount: number;
+  usageLimit: number;
+  discountType: 'UPTO' | 'FLAT';
+  discountMessage: string;
+}
+
 interface CartState {
   id: string | null;
   items: CartItem[];
   shopId: string | null;
   loading: boolean;
   error: string | null;
-  totalAmount: number;
+  finalAmount: number;
+  originalAmount: number;
+  discount: number;
+  coupon: Coupon | null;
 }
 
 const initialState: CartState = {
@@ -36,7 +47,10 @@ const initialState: CartState = {
   shopId: null,
   loading: false,
   error: null,
-  totalAmount: 0,
+  finalAmount: 0,
+  originalAmount: 0,
+  discount: 0,
+  coupon: null,
 };
 
 // Helper function to get token
@@ -56,8 +70,8 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async () => {
     id: null,
     items: [],
     shopId: null,
-    totalAmount: 0,
-    ...data.data
+    finalAmount: 0,
+    ...data.data,
   };
 });
 
@@ -99,22 +113,19 @@ export const updateCartItemQuantity = createAsyncThunk(
   }
 );
 
-export const removeFromCart = createAsyncThunk(
-  'cart/removeItem',
-  async (itemId: string) => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}/cart/item/${itemId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: token || '',
-      },
-    });
+export const removeFromCart = createAsyncThunk('cart/removeItem', async (itemId: string) => {
+  const token = getToken();
+  const response = await fetch(`${API_BASE_URL}/cart/item/${itemId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: token || '',
+    },
+  });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
-    return itemId;
-  }
-);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message);
+  return itemId;
+});
 
 export const clearCart = createAsyncThunk('cart/clear', async () => {
   const token = getToken();
@@ -129,6 +140,25 @@ export const clearCart = createAsyncThunk('cart/clear', async () => {
   if (!response.ok) throw new Error(data.message);
   return data.data;
 });
+
+export const applyCoupon = createAsyncThunk(
+  'cart/applyCoupon',
+  async (code: string) => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}/order/apply-coupon`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token || '',
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    return data.data;
+  }
+);
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -145,7 +175,7 @@ const cartSlice = createSlice({
         state.id = action.payload.id;
         state.items = action.payload.items;
         state.shopId = action.payload.shopId;
-        state.totalAmount = action.payload.totalAmount;
+        state.finalAmount = action.payload.finalAmount;
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
@@ -156,20 +186,20 @@ const cartSlice = createSlice({
         state.id = action.payload.id;
         state.items = action.payload.items;
         state.shopId = action.payload.shopId;
-        state.totalAmount = action.payload.totalAmount;
+        state.finalAmount = action.payload.finalAmount;
       })
       // Update Quantity
       .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
         const updatedItems = action.payload.items;
-        state.items = state.items.map(item => {
+        state.items = state.items.map((item) => {
           const updatedItem = updatedItems.find((i: CartItem) => i.id === item.id);
           return updatedItem || item;
         });
-        state.totalAmount = action.payload.totalAmount;
+        state.finalAmount = action.payload.finalAmount;
       })
       // Remove Item
       .addCase(removeFromCart.fulfilled, (state, action) => {
-        state.items = state.items.filter(item => item.id !== action.payload);
+        state.items = state.items.filter((item) => item.id !== action.payload);
         if (state.items.length === 0) {
           state.shopId = null;
         }
@@ -179,7 +209,16 @@ const cartSlice = createSlice({
         state.id = null;
         state.items = [];
         state.shopId = null;
-        state.totalAmount = 0;
+        state.finalAmount = 0;
+        state.originalAmount = 0;
+        state.discount = 0;
+        state.coupon = null;
+      })
+      .addCase(applyCoupon.fulfilled, (state, action) => {
+        state.originalAmount = action.payload.originalAmount;
+        state.discount = action.payload.discount;
+        state.finalAmount = action.payload.finalAmount;
+        state.coupon = action.payload.coupon;
       });
   },
 });
