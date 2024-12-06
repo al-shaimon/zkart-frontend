@@ -12,7 +12,7 @@ export default function HeroSection() {
   const slides = [
     {
       id: 1,
-      image: '/banner1.jpg',
+      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1733523343/banner1_k2mvv8.jpg',
       title: 'Flash Sale',
       description: 'Get up to 50% off on selected items',
       buttonText: 'Shop Now',
@@ -21,7 +21,7 @@ export default function HeroSection() {
     },
     {
       id: 2,
-      image: '/banner2.jpg',
+      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1733523345/banner2_togcwl.jpg',
       title: 'New Arrivals',
       description: 'Check out our latest products',
       buttonText: 'Explore',
@@ -59,6 +59,9 @@ export default function HeroSection() {
                   priority
                   sizes="100vw"
                   quality={100}
+                  onError={() => {
+                    console.error(`Error loading image: ${slide.image}`);
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/20" />
 
