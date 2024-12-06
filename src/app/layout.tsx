@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/redux/provider";
 import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
+import { AuthProvider } from '@/contexts/auth-context';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,11 +25,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} font-poppins antialiased bg-[#f2f4f8]`}>
-        <Providers>
-          <Navbar />
-          {children}
-          <Toaster position="top-center" expand={true} richColors />
-        </Providers>
+        <AuthProvider>
+          <Providers>
+            <Navbar />
+            {children}
+            <Toaster position="top-center" expand={true} richColors />
+          </Providers>
+        </AuthProvider>
       </body>
     </html>
   );
