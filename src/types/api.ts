@@ -27,6 +27,25 @@ export interface Shop {
   name: string;
   description: string;
   logo: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  vendorId: string;
+  vendor: Vendor;
+  products: Product[];
+  followers: string[];
+}
+
+export interface Vendor {
+  id: string;
+  email: string;
+  name: string;
+  profilePhoto: string | null;
+  contactNumber: string;
+  address: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductImage {
