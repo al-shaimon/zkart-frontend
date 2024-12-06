@@ -19,19 +19,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} font-poppins antialiased bg-[#f2f4f8]`}>
-        <AuthProvider>
-          <Providers>
+        <Providers>
+          <AuthProvider>
             <Navbar />
             {children}
             <Toaster position="top-center" expand={true} richColors />
-          </Providers>
-        </AuthProvider>
+          </AuthProvider>
+        </Providers>
       </body>
     </html>
   );
