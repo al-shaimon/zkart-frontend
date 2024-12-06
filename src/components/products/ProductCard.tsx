@@ -3,8 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types/api';
-import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
 import Rating from '../ui/Rating';
 import AddToCartButton from './AddToCartButton';
 

@@ -8,30 +8,40 @@ import {
   removeFromCart,
   clearCart,
   applyCoupon,
+  createOrder,
 } from '@/redux/features/cartSlice';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Input } from "@/components/ui/input";
+import { Input } from '@/components/ui/input';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import type { Stripe, StripeElements } from '@stripe/stripe-js';
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 export default function CartPage() {
   const dispatch = useAppDispatch();
-  const { 
-    items = [], 
-    originalAmount = 0, 
-    discount = 0, 
-    finalAmount = 0, 
+  const {
+    items = [],
+    originalAmount = 0,
+    discount = 0,
+    finalAmount = 0,
     loading,
-    coupon 
+    coupon,
   } = useAppSelector((state) => state.cart);
   const { user } = useAuth();
   const router = useRouter();
   const [couponCode, setCouponCode] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [processingCheckout, setProcessingCheckout] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isPaymentInitiated, setIsPaymentInitiated] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -113,6 +123,40 @@ export default function CartPage() {
       toast.error(error instanceof Error ? error.message : 'Failed to apply coupon');
     } finally {
       setApplyingCoupon(false);
+    }
+  };
+
+  const handleInitiateCheckout = async () => {
+    setProcessingCheckout(true);
+    try {
+      const orderData = await dispatch(createOrder()).unwrap();
+      setClientSecret(orderData.clientSecret);
+      setIsPaymentInitiated(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to initiate checkout');
+    } finally {
+      setProcessingCheckout(false);
+    }
+  };
+
+  const handlePayment = async (stripe: Stripe | null, elements: StripeElements | null) => {
+    if (!stripe || !elements || !clientSecret) return;
+
+    setProcessingCheckout(true);
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/payment/success`,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Payment failed');
+      setProcessingCheckout(false);
     }
   };
 
@@ -227,11 +271,7 @@ export default function CartPage() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                   />
-                  <Button 
-                    variant="outline" 
-                    onClick={handleApplyCoupon}
-                    disabled={applyingCoupon}
-                  >
+                  <Button variant="outline" onClick={handleApplyCoupon} disabled={applyingCoupon}>
                     {applyingCoupon ? 'Applying...' : 'Apply'}
                   </Button>
                 </div>
@@ -257,10 +297,70 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
-            <Button className="w-full mt-4">Proceed to Checkout</Button>
+            {!isPaymentInitiated ? (
+              <Button
+                className="w-full mt-4"
+                onClick={handleInitiateCheckout}
+                disabled={processingCheckout}
+              >
+                {processingCheckout ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Proceed to Checkout'
+                )}
+              </Button>
+            ) : clientSecret ? (
+              <Elements
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  appearance: {
+                    theme: 'stripe',
+                  },
+                }}
+              >
+                <CheckoutForm onPayment={handlePayment} processingCheckout={processingCheckout} />
+              </Elements>
+            ) : null}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function CheckoutForm({
+  onPayment,
+  processingCheckout,
+}: {
+  onPayment: (stripe: Stripe | null, elements: StripeElements | null) => Promise<void>;
+  processingCheckout: boolean;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    await onPayment(stripe, elements);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      <Button type="submit" className="w-full" disabled={!stripe || processingCheckout}>
+        {processingCheckout ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing Payment...
+          </>
+        ) : (
+          'Pay Now'
+        )}
+      </Button>
+    </form>
   );
 }

@@ -19,7 +19,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/products') ||
     pathname.startsWith('/categories') ||
-    pathname.startsWith('/shop')
+    pathname.startsWith('/shop') 
+    // ||
+    // pathname.startsWith('/payment')
   ) {
     return NextResponse.next();
   }
@@ -48,7 +50,7 @@ export function middleware(request: NextRequest) {
         // - /cart (their shopping cart)
         // - /compare (product comparison)
         // - /recent-products (recently viewed)
-        if (!pathname.match(/^\/(?:profile|orders|cart|compare|recent-products)/)) {
+        if (!pathname.match(/^\/(?:profile|orders|cart|payment|compare|order|recent-products)/)) {
           return NextResponse.redirect(new URL('/profile', request.url));
         }
         break;

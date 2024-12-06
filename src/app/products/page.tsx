@@ -1,44 +1,35 @@
 'use client';
 
+import { Suspense  } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import ProductGrid from '@/components/products/ProductGrid';
-import { API_BASE_URL } from '@/config/api';
+import { Loader2 } from 'lucide-react';
 
-interface Category {
-  id: string;
-  name: string;
-}
-
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
-  const initialCategory = searchParams.get('category');
-  const [, setCategories] = useState<Category[]>([]);
-  const [selectedCategory] = useState<string | null>(initialCategory);
-
-  useEffect(() => {
-    // Fetch categories
-    async function fetchCategories() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/category`);
-        const data = await response.json();
-        setCategories(data.data || []);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      }
-    }
-
-    fetchCategories();
-  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Products Grid */}
-        <div className="flex-grow">
-          <ProductGrid categoryId={selectedCategory} />
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1">
+          <ProductGrid categoryId={searchParams.get('category')} />
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-16 text-center">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto" />
+          <p className="mt-4">Loading products...</p>
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }

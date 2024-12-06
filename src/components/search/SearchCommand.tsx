@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/command';
 import { Product } from '@/types/api';
 import { API_BASE_URL } from '@/config/api';
-import debounce from 'lodash/debounce';
+
+import Image from 'next/image';
 
 interface SearchCommandProps {
   isOpen?: boolean;
@@ -45,7 +46,7 @@ export default function SearchCommand({ isOpen: propIsOpen, onOpenChange }: Sear
 
   // Separate the API call from input handling
   const fetchResults = useCallback(
-    debounce(async (term: string) => {
+    async (term: string) => {
       if (!term.trim()) {
         setResults([]);
         setLoading(false);
@@ -65,8 +66,8 @@ export default function SearchCommand({ isOpen: propIsOpen, onOpenChange }: Sear
       } finally {
         setLoading(false);
       }
-    }, 200), // Reduced debounce time
-    []
+    },
+    [setResults, setLoading]
   );
 
   // Handle input change immediately
@@ -117,10 +118,12 @@ export default function SearchCommand({ isOpen: propIsOpen, onOpenChange }: Sear
                   className="flex items-center gap-4 py-3 cursor-pointer"
                 >
                   <div className="flex-shrink-0 w-16 h-16 relative">
-                    <img
+                    <Image
                       src={product.image}
                       alt={product.name}
-                      className="object-cover rounded w-full h-full"
+                      fill
+                      className="object-cover rounded"
+                      sizes="64px"
                     />
                   </div>
                   <div className="flex-grow min-w-0">
