@@ -12,13 +12,14 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('token')?.value;
 
-  // Public routes - allow access
+  // Public routes that don't require authentication
   if (
     pathname.startsWith('/_next') ||
     pathname === '/' ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/products') ||
-    pathname.startsWith('/categories')
+    pathname.startsWith('/categories') ||
+    pathname.startsWith('/shops')
   ) {
     return NextResponse.next();
   }
@@ -39,26 +40,29 @@ export function middleware(request: NextRequest) {
     }
 
     // Role-based route protection
-    const baseRoute = pathname.split('/')[1]; // Get first part of path
-
     switch (decoded.role) {
       case 'CUSTOMER':
-        // Customers can only access /profile
-        if (baseRoute !== 'profile') {
+        // Customers can access:
+        // - /profile (their profile)
+        // - /orders (their order history)
+        // - /cart (their shopping cart)
+        // - /compare (product comparison)
+        // - /recent-products (recently viewed)
+        if (!pathname.match(/^\/(?:profile|orders|cart|compare|recent-products)/)) {
           return NextResponse.redirect(new URL('/profile', request.url));
         }
         break;
 
       case 'VENDOR':
         // Vendors can only access /vendor routes
-        if (baseRoute === 'profile' || baseRoute === 'admin') {
+        if (!pathname.startsWith('/vendor')) {
           return NextResponse.redirect(new URL('/vendor/dashboard', request.url));
         }
         break;
 
       case 'ADMIN':
         // Admins can only access /admin routes
-        if (baseRoute === 'profile' || baseRoute === 'vendor') {
+        if (!pathname.startsWith('/admin')) {
           return NextResponse.redirect(new URL('/admin/dashboard', request.url));
         }
         break;
@@ -77,6 +81,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    /*
+     * Match all request paths except:
+     * 1. /_next (Next.js internals)
+     * 2. /api (API routes)
+     * 3. /static (static files)
+     * 4. /_vercel (Vercel internals)
+     * 5. /favicon.ico, /sitemap.xml (static files)
+     */
     '/((?!_next|api|static|_vercel|favicon.ico|sitemap.xml).*)',
   ],
 };
