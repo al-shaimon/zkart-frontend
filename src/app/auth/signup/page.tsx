@@ -241,7 +241,7 @@ export default function SignupPage() {
             <FormField
               control={form.control}
               name="profilePhoto"
-              render={({ field: { onChange, ...field } }) => (
+              render={({ field: { onChange } }) => (
                 <FormItem>
                   <FormLabel>Profile Photo</FormLabel>
                   <FormControl>

@@ -162,7 +162,7 @@ const cartSlice = createSlice({
       .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
         const updatedItems = action.payload.items;
         state.items = state.items.map(item => {
-          const updatedItem = updatedItems.find(i => i.id === item.id);
+          const updatedItem = updatedItems.find((i: CartItem) => i.id === item.id);
           return updatedItem || item;
         });
         state.totalAmount = action.payload.totalAmount;
