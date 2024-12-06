@@ -46,17 +46,22 @@ export default function CategorySection() {
     <section className="py-8">
       <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
       <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-        <div className="flex space-x-4 p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 p-4">
           {categories.map((category) => (
             <div
               key={category.id}
-              className="flex-none w-[150px] cursor-pointer hover:scale-105 transition-transform"
+              className="flex flex-col items-center p-4 cursor-pointer hover:scale-105 transition-transform bg-white rounded-lg shadow-sm hover:shadow-md"
               onClick={() => handleCategoryClick(category.id)}
             >
-              <div className="relative w-full h-[150px] rounded-lg overflow-hidden">
-                <Image src={category.image} alt={category.name} fill className="object-cover" />
+              <div className="relative w-[64px] h-[64px] mb-2">
+                <Image 
+                  src={category.image} 
+                  alt={category.name} 
+                  fill 
+                  className="object-contain"
+                />
               </div>
-              <p className="text-center mt-2 font-medium">{category.name}</p>
+              <p className="text-sm text-center font-medium text-gray-700">{category.name}</p>
             </div>
           ))}
         </div>
