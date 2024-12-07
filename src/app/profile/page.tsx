@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // } from 'lucide-react';
 import ProfileInfo from '@/components/profile/ProfileInfo';
 import OrderHistory from '@/components/profile/OrderHistory';
+import RecentProducts from '@/components/recent-products/RecentProducts';
 
 export default function ProfilePage() {
   const { isAuthenticated, user } = useAuth();
@@ -48,6 +49,12 @@ export default function ProfilePage() {
               >
                 Order History
               </TabsTrigger>
+              <TabsTrigger
+                value="recent"
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+              >
+                Recent Products
+              </TabsTrigger>
             </TabsList>
 
             <div className="p-4">
@@ -57,6 +64,10 @@ export default function ProfilePage() {
 
               <TabsContent value="orders">
                 <OrderHistory />
+              </TabsContent>
+
+              <TabsContent value="recent">
+                <RecentProducts />
               </TabsContent>
             </div>
           </Tabs>
