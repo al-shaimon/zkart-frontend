@@ -3,6 +3,7 @@ import CategorySection from '@/components/home/CategorySection';
 import FlashSaleSection from '@/components/home/FlashSaleSection';
 import ProductGrid from '@/components/products/ProductGrid';
 import { ScrollToTop } from '@/components/ScrollToTop';
+import FollowedShopsProducts from '@/components/home/FollowedShopsProducts';
 
 export default function Home() {
   return (
@@ -12,12 +13,16 @@ export default function Home() {
       <div className="container mx-auto px-4">
         <CategorySection />
         <FlashSaleSection />
+
+        <FollowedShopsProducts />
         
         <section className="py-8">
           <h2 className="text-2xl font-bold mb-6">All Products</h2>
           <ProductGrid />
         </section>
       </div>
+
+      
 
       <ScrollToTop />
     </main>
