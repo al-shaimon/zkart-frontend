@@ -13,6 +13,7 @@ import ProductReviews from '@/components/products/ProductReviews';
 import ProductDetailsSkeleton from '@/components/products/ProductDetailsSkeleton';
 import AddToCartButton from '@/components/products/AddToCartButton';
 import { useAuth } from '@/contexts/auth-context';
+import CompareButton from '@/components/products/CompareButton';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -113,14 +114,19 @@ export default function ProductDetails() {
             <p>{product.description}</p>
           </div>
 
-          {/* Add to Cart */}
-          <div className="lg:w-1/2">
-            <AddToCartButton
-              productId={product.id}
-              shopId={product.shop.id}
-              stock={product.stock}
-              showQuantity={true}
-            />
+          {/* Add to Cart and Compare */}
+          <div className="md:flex items-center justify-center gap-5 lg:w-1/2 space-y-3">
+            <div>
+              <AddToCartButton
+                productId={product.id}
+                shopId={product.shop.id}
+                stock={product.stock}
+                showQuantity={true}
+              />
+            </div>
+            <div className="">
+              <CompareButton product={product} />
+            </div>
           </div>
 
           {/* Stock Status */}
@@ -136,7 +142,7 @@ export default function ProductDetails() {
 
       {/* Reviews Section */}
       <div className="mt-16">
-        <ProductReviews reviews={product.reviews} />
+        <ProductReviews reviews={product.reviews ?? []} />
       </div>
 
       {/* Related Products */}

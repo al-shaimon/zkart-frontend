@@ -6,9 +6,14 @@ import { Product } from '@/types/api';
 import ProductCard from '@/components/products/ProductCard';
 import { useAuth } from '@/contexts/auth-context';
 
+interface RecentView {
+  id: string;
+  viewedAt: string;
+  product: Product;
+}
+
 export default function RecentlyViewedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -24,14 +29,11 @@ export default function RecentlyViewedProducts() {
         const data = await response.json();
 
         if (data.success && data.data.length > 0) {
-          // Extract products from the recent views and take the first 4
-          const recentProducts = data.data.map((view: any) => view.product).slice(0, 4);
+          const recentProducts = data.data.map((view: RecentView) => view.product).slice(0, 4);
           setProducts(recentProducts);
         }
       } catch (error) {
         console.error('Failed to fetch recently viewed products:', error);
-      } finally {
-        setLoading(false);
       }
     };
 

@@ -13,6 +13,8 @@ export interface Product {
   shop: Shop;
   images: ProductImage[];
   reviews?: Review[];
+  averageRating: number;
+  totalReviews: number;
 }
 
 export interface Category {
