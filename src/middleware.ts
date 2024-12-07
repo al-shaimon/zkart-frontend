@@ -19,7 +19,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/products') ||
     pathname.startsWith('/categories') ||
-    pathname.startsWith('/shop') 
+    pathname.startsWith('/shop') ||
+    pathname.startsWith('/flash-sale')
     // ||
     // pathname.startsWith('/payment')
   ) {
