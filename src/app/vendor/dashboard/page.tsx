@@ -4,70 +4,71 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Card } from '@/components/ui/card';
-// import {
-//   ClipboardList,
-//   FileText,
-//   User,
-//   Lock,
-//   BookmarkIcon,
-//   MonitorIcon,
-//   StarIcon,
-//   CreditCard,
-// } from 'lucide-react';
-import ProfileInfo from '@/components/profile/ProfileInfo';
-import OrderHistory from '@/components/profile/OrderHistory';
-import RecentProducts from '@/components/recent-products/RecentProducts';
+import VendorProfile from '@/components/vendor/VendorProfile';
+import VendorOrders from '@/components/vendor/VendorOrders';
+import ShopForm from '@/components/vendor/ShopForm';
+// import ProductForm from '@/components/vendor/ProductForm';
+import ProductList from '@/components/vendor/ProductList';
 
-export default function ProfilePage() {
+export default function VendorDashboard() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'CUSTOMER') {
+    if (!isAuthenticated || user?.role !== 'VENDOR') {
       router.push('/');
     }
   }, [isAuthenticated, user, router]);
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div>
-        <h1 className="text-2xl font-bold mb-6">My Account</h1>
+      <div className="max-w-[1280px] mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Vendor Dashboard</h1>
 
         <div className="bg-card rounded-lg">
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs defaultValue="shop" className="w-full">
             <TabsList className="w-full justify-start border-b rounded-none p-0">
               <TabsTrigger
-                value="profile"
+                value="shop"
                 className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
               >
-                Profile Info
+                Shop Management
+              </TabsTrigger>
+              <TabsTrigger
+                value="products"
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+              >
+                Products
               </TabsTrigger>
               <TabsTrigger
                 value="orders"
                 className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
               >
-                Order History
+                Orders
               </TabsTrigger>
               <TabsTrigger
-                value="recent"
+                value="profile"
                 className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
               >
-                Recent Products
+                Profile
               </TabsTrigger>
             </TabsList>
 
             <div className="p-4">
-              <TabsContent value="profile">
-                <ProfileInfo />
+              <TabsContent value="shop">
+                <ShopForm />
+              </TabsContent>
+
+              <TabsContent value="products">
+                <ProductList />
               </TabsContent>
 
               <TabsContent value="orders">
-                <OrderHistory />
+                <VendorOrders />
               </TabsContent>
 
-              <TabsContent value="recent">
-                <RecentProducts />
+              <TabsContent value="profile">
+                <VendorProfile />
               </TabsContent>
             </div>
           </Tabs>
