@@ -12,11 +12,13 @@ import RelatedProducts from '@/components/products/RelatedProducts';
 import ProductReviews from '@/components/products/ProductReviews';
 import ProductDetailsSkeleton from '@/components/products/ProductDetailsSkeleton';
 import AddToCartButton from '@/components/products/AddToCartButton';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     async function fetchProduct() {
@@ -24,6 +26,20 @@ export default function ProductDetails() {
         const response = await fetch(`${API_BASE_URL}/product/${id}?include=reviews,images`);
         const data = await response.json();
         setProduct(data.data);
+
+        // Record view if user is authenticated
+        if (isAuthenticated && user?.role === 'CUSTOMER') {
+          await fetch(`${API_BASE_URL}/recent-view`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({
+              productId: id,
+            }),
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch product:', error);
       } finally {
@@ -34,7 +50,7 @@ export default function ProductDetails() {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, isAuthenticated, user]);
 
   if (loading) {
     return <ProductDetailsSkeleton />;
