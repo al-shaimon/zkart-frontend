@@ -13,12 +13,14 @@ interface DecodedToken {
 }
 
 interface User {
+  id: string;
   email: string;
   role: 'CUSTOMER' | 'VENDOR' | 'ADMIN';
 }
 
 interface AuthContextType {
   user: User | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
   login: (token: string) => void;
   logout: () => void;
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const decoded = jwtDecode<DecodedToken>(token);
           if (decoded && decoded.exp * 1000 > Date.now()) {
             const user = {
+              id: decoded.email,
               email: decoded.email,
               role: decoded.role,
             };
@@ -62,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const decoded = jwtDecode<DecodedToken>(accessToken);
       const user = {
+        id: decoded.email,
         email: decoded.email,
         role: decoded.role,
       };
@@ -84,7 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      login,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

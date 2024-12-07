@@ -12,7 +12,7 @@ export interface Product {
   category: Category;
   shop: Shop;
   images: ProductImage[];
-  reviews: Review[];
+  reviews?: Review[];
 }
 
 export interface Category {
@@ -22,6 +22,19 @@ export interface Category {
   image: string;
 }
 
+export interface ShopFollower {
+  id: string;
+  createdAt: string;
+  shopId: string;
+  customerId: string;
+  customer?: {
+    id: string;
+    email: string;
+    name: string;
+    profilePhoto: string | null;
+  };
+}
+
 export interface Shop {
   id: string;
   name: string;
@@ -29,11 +42,9 @@ export interface Shop {
   logo: string;
   createdAt: string;
   updatedAt: string;
-  isDeleted: boolean;
-  vendorId: string;
-  vendor: Vendor;
   products: Product[];
-  followers: string[];
+  followers: ShopFollower[];
+  // ... other fields
 }
 
 export interface Vendor {

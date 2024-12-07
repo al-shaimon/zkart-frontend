@@ -6,15 +6,31 @@ import Image from 'next/image';
 import { Users } from 'lucide-react';
 import { Shop } from '@/types/api';
 import { API_BASE_URL } from '@/config/api';
-import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/products/ProductCard';
-// import ProductSkeleton from '@/components/products/ProductSkeleton';
 import ShopSkeleton from '@/components/shop/ShopSkeleton';
+import FollowButton from '@/components/shop/FollowButton';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function ShopPage() {
   const { id } = useParams();
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, user } = useAuth();
+  console.log('Shop page auth state:', { isAuthenticated, user });
+
+  const handleFollowChange = async () => {
+    if (!shop || !user) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/shop/${shop.id}`);
+      const data = await response.json();
+      if (data.success) {
+        setShop(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch updated shop data:', error);
+    }
+  };
 
   useEffect(() => {
     async function fetchShop() {
@@ -75,9 +91,12 @@ export default function ShopPage() {
           </div>
 
           {/* Follow Button */}
-          <Button variant="outline" className="min-w-[120px]">
-            {shop.followers.includes('current-user-id') ? 'Following' : 'Follow'}
-          </Button>
+          <FollowButton 
+            shopId={shop.id} 
+            isFollowing={shop.followers.some(f => f.customerId === user?.id)}
+            className="min-w-[120px]"
+            onFollowChange={handleFollowChange}
+          />
         </div>
       </div>
 

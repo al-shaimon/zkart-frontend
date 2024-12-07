@@ -11,9 +11,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const averageRating =
-    product.reviews.reduce((acc, review) => acc + review.rating, 0) /
-    (product.reviews.length || 1);
+  const averageRating = product.reviews?.length 
+    ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
+    : 0;
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
@@ -59,7 +59,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-4">
           <AddToCartButton 
             productId={product.id} 
-            shopId={product.shop.id} 
+            shopId={product.shop?.id} 
             stock={product.stock}
           />
         </div>
