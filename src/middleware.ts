@@ -20,9 +20,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/products') ||
     pathname.startsWith('/categories') ||
     pathname.startsWith('/shop') ||
-    pathname.startsWith('/flash-sale')
-    // ||
-    // pathname.startsWith('/payment')
+    pathname.startsWith('/cart') ||
+    pathname.startsWith('/flash-sale') ||
+    pathname.startsWith('/reset-pass')
   ) {
     return NextResponse.next();
   }

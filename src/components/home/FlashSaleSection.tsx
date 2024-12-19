@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import ProductCard from '../products/ProductCard';
+import ProductSkeleton from '../products/ProductSkeleton';
 import { Product } from '@/types/api';
 import { API_BASE_URL } from '@/config/api';
 
@@ -29,14 +30,6 @@ export default function FlashSaleSection() {
     fetchFlashSaleProducts();
   }, []);
 
-  if (loading) {
-    return <div className="h-[400px] bg-gray-100 animate-pulse rounded-lg" />;
-  }
-
-  if (!products || products.length === 0) {
-    return null;
-  }
-
   return (
     <section id="flash-sale" className="py-8">
       <div className="flex justify-between items-center mb-6">
@@ -46,11 +39,23 @@ export default function FlashSaleSection() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, index) => (
+            <ProductSkeleton key={index} />
+          ))}
+        </div>
+      ) : products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          No flash sale products available
+        </div>
+      )}
     </section>
   );
 }

@@ -161,8 +161,8 @@ export default function VendorOrders() {
 
   const canUpdateStatus = (order: Order) => {
     return (
-      !updating && 
-      order.status !== 'DELIVERED' && 
+      !updating &&
+      order.status !== 'DELIVERED' &&
       order.status !== 'CANCELLED' &&
       order.paymentStatus === 'PAID'
     );
@@ -237,7 +237,7 @@ export default function VendorOrders() {
                         <div className="flex-1 min-w-0">
                           <Link
                             href={`/products/${item.product.id}`}
-                            className="text-sm hover:text-primary truncate block"
+                            className="text-sm hover:text-primary"
                           >
                             {item.product.name}
                           </Link>

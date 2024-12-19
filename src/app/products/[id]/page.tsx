@@ -115,8 +115,8 @@ export default function ProductDetails() {
           </div>
 
           {/* Add to Cart and Compare */}
-          <div className="md:flex items-center justify-center gap-5 lg:w-1/2 space-y-3">
-            <div>
+          <div className="md:flex items-center justify-center gap-5 lg:w-1/2 space-y-4">
+            <div className="w-full md:w-auto">
               <AddToCartButton
                 productId={product.id}
                 shopId={product.shop.id}
@@ -124,7 +124,7 @@ export default function ProductDetails() {
                 showQuantity={true}
               />
             </div>
-            <div className="">
+            <div className="w-full md:w-auto">
               <CompareButton product={product} />
             </div>
           </div>

@@ -18,11 +18,17 @@ export default function RelatedProducts({ categoryId, currentProductId }: Relate
   useEffect(() => {
     async function fetchRelatedProducts() {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/product?category=${categoryId}&exclude=${currentProductId}&limit=4&include=reviews`
-        );
+        const response = await fetch(`${API_BASE_URL}/category/${categoryId}`);
         const data = await response.json();
-        setProducts(data.data || []);
+        
+        if (data.success) {
+          // Filter out the current product and limit to 4 products
+          const relatedProducts = data.data.products
+            .filter((product: Product) => product.id !== currentProductId)
+            .slice(0, 4);
+            
+          setProducts(relatedProducts);
+        }
       } catch (error) {
         console.error('Failed to fetch related products:', error);
       } finally {
@@ -62,4 +68,4 @@ export default function RelatedProducts({ categoryId, currentProductId }: Relate
       </div>
     </div>
   );
-} 
+}

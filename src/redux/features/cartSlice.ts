@@ -298,11 +298,11 @@ const cartSlice = createSlice({
       .addCase(updatePaymentStatus.fulfilled, () => {
         // Reset cart state completely
         return {
-          ...initialState
+          ...initialState,
         };
       })
       .addCase(updatePaymentStatus.rejected, (state, action) => {
-        state.error = action.payload as string || 'Failed to update payment status';
+        state.error = (action.payload as string) || 'Failed to update payment status';
       });
   },
 });

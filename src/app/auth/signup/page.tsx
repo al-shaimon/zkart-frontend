@@ -24,7 +24,7 @@ const MAX_FILE_SIZE = 5000000; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const signupSchema = z.object({
-  role: z.enum(['customer', 'vendor']),
+  role: z.enum(['customer', 'vendor', 'admin']),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -65,9 +65,17 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormValues) => {
     setLoading(true);
     try {
-      const endpoint = data.role === 'vendor' 
-        ? `${API_BASE_URL}/user/create-vendor`
-        : `${API_BASE_URL}/user/create-customer`;
+      let endpoint;
+      switch(data.role) {
+        case 'vendor':
+          endpoint = `${API_BASE_URL}/user/create-vendor`;
+          break;
+        case 'admin':
+          endpoint = `${API_BASE_URL}/user/create-admin`;
+          break;
+        default:
+          endpoint = `${API_BASE_URL}/user/create-customer`;
+      }
 
       const formData = new FormData();
 
@@ -150,6 +158,10 @@ export default function SignupPage() {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="vendor" id="vendor" />
                         <label htmlFor="vendor">Vendor</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="admin" id="admin" />
+                        <label htmlFor="admin">Admin</label>
                       </div>
                     </RadioGroup>
                   </FormControl>

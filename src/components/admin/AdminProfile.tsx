@@ -15,10 +15,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 
@@ -28,23 +29,23 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/web
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   contactNumber: z.string().min(10, 'Contact number must be at least 10 characters'),
-  address: z.string().min(5, 'Address must be at least 5 characters'),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-interface VendorProfile {
+interface AdminProfile {
   name: string;
   email: string;
+  role: string;
+  status: string;
   profilePhoto: string | null;
   contactNumber: string;
-  address: string;
 }
 
-export default function VendorProfile() {
+export default function AdminProfile() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [profile, setProfile] = useState<VendorProfile | null>(null);
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<ProfileFormValues>({
@@ -65,12 +66,11 @@ export default function VendorProfile() {
           setProfile(data.data);
           form.reset({
             name: data.data.name,
-            contactNumber: data.data.contactNumber,
-            address: data.data.address,
+            contactNumber: data.data.contactNumber || '',
           });
         }
-      } catch (error) {
-        toast.error('Failed to fetch profile: ' + error);
+      } catch {
+        toast.error('Failed to fetch profile');
       } finally {
         setLoading(false);
       }
@@ -100,13 +100,7 @@ export default function VendorProfile() {
     setUpdating(true);
     try {
       const formData = new FormData();
-      const payload = {
-        name: data.name,
-        contactNumber: data.contactNumber,
-        address: data.address,
-      };
-
-      formData.append('data', JSON.stringify(payload));
+      formData.append('data', JSON.stringify(data));
 
       if (selectedFile) {
         formData.append('file', selectedFile);
@@ -123,7 +117,7 @@ export default function VendorProfile() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to update profile');
+        throw new Error(result.message);
       }
 
       setProfile(result.data);
@@ -162,12 +156,7 @@ export default function VendorProfile() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
             <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100">
               {profile?.profilePhoto ? (
-                <Image
-                  src={profile.profilePhoto}
-                  alt={profile.name}
-                  fill
-                  className="object-cover"
-                />
+                <Image src={profile.profilePhoto} alt={profile.name} fill className="object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-primary/10">
                   <span className="text-2xl text-primary">
@@ -179,6 +168,14 @@ export default function VendorProfile() {
             <div className="text-center sm:text-left">
               <h2 className="text-xl font-semibold">{profile?.name}</h2>
               <p className="text-muted-foreground">{profile?.email}</p>
+              <div className="flex gap-2 mt-2">
+                <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                  {profile?.role}
+                </Badge>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {profile?.status}
+                </Badge>
+              </div>
             </div>
           </div>
 
@@ -194,9 +191,7 @@ export default function VendorProfile() {
                     className="cursor-pointer flex-1"
                   />
                   {selectedFile && (
-                    <p className="text-sm text-muted-foreground">
-                      Selected: {selectedFile.name}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Selected: {selectedFile.name}</p>
                   )}
                 </div>
               </div>
@@ -231,20 +226,6 @@ export default function VendorProfile() {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <div className="flex justify-end">
                 <Button type="submit" disabled={updating}>
                   {updating ? (
@@ -267,4 +248,4 @@ export default function VendorProfile() {
       </TabsContent>
     </Tabs>
   );
-} 
+}

@@ -3,10 +3,10 @@
 import { useCompare } from '@/contexts/compare-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Rating from '@/components/ui/Rating';
 
@@ -14,12 +14,22 @@ export default function ComparePage() {
   const { compareProducts, removeFromCompare } = useCompare();
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
+  const [removingProductId, setRemovingProductId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'CUSTOMER') {
       router.push('/');
     }
   }, [isAuthenticated, user, router]);
+
+  const handleRemoveFromCompare = async (productId: string) => {
+    setRemovingProductId(productId);
+    try {
+      await removeFromCompare(productId);
+    } finally {
+      setRemovingProductId(null);
+    }
+  };
 
   if (compareProducts.length === 0) {
     return (
@@ -46,11 +56,18 @@ export default function ComparePage() {
                       variant="ghost"
                       size="icon"
                       className="absolute -top-2 -right-2 z-10"
-                      onClick={() => removeFromCompare(product.id)}
+                      onClick={() => handleRemoveFromCompare(product.id)}
+                      disabled={removingProductId === product.id}
                     >
-                      <X className="h-4 w-4" />
+                      {removingProductId === product.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <X className="h-4 w-4" />
+                      )}
                     </Button>
-                    <div className="h-[300px] w-[300px] relative mb-4">
+                    <div className={`h-[300px] w-[300px] relative mb-4 ${
+                      removingProductId === product.id ? 'opacity-50' : ''
+                    }`}>
                       <Image
                         src={product.image}
                         alt={product.name}

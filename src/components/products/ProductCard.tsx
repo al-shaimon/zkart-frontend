@@ -1,8 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product } from '@/types/api';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import Rating from '../ui/Rating';
 import AddToCartButton from './AddToCartButton';
 
@@ -15,19 +17,48 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
     : 0;
 
+  // Calculate discount percentage for flash sale
+  const getDiscountPercentage = () => {
+    if (product.flashSalePrice) {
+      return Math.round(((product.price - product.flashSalePrice) / product.price) * 100);
+    }
+    return null;
+  };
+
+  const discountPercentage = getDiscountPercentage();
+
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
-      <Link href={`/products/${product.id}`} className="relative aspect-square">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          className="object-cover hover:scale-105 transition-transform"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+    <Card className="group h-full overflow-hidden flex flex-col">
+      <Link href={`/products/${product.id}`}>
+        <div className="relative aspect-square">
+          {/* Flash Sale Badge */}
+          {product.isFlashSale && (
+            <div className="absolute top-2 left-2 z-10">
+              <Badge variant="destructive" className="px-2 py-1">
+                Flash Sale
+              </Badge>
+            </div>
+          )}
+          
+          {/* Discount Percentage Badge (only show in flash sale) */}
+          {discountPercentage && (
+            <div className="absolute top-2 right-2 z-10">
+              <Badge variant="secondary" className="px-2 py-1">
+                {discountPercentage}% OFF
+              </Badge>
+            </div>
+          )}
+
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform group-hover:scale-105 p-5"
+          />
+        </div>
       </Link>
 
-      <div className="flex flex-col flex-grow p-4">
+      <div className="p-4 flex flex-col flex-grow">
         <div className="flex-grow">
           <Link href={`/products/${product.id}`}>
             <h3 className="font-semibold text-sm line-clamp-2 hover:text-primary transition-colors min-h-[40px]">
@@ -47,8 +78,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-center gap-2 mt-2">
             {product.flashSalePrice ? (
               <>
-                <span className="text-red-500 font-bold">৳{product.flashSalePrice}</span>
-                <span className="text-gray-500 line-through text-sm">৳{product.price}</span>
+                <span className="font-bold text-red-500">৳{product.flashSalePrice}</span>
+                <span className="text-sm text-muted-foreground line-through">৳{product.price}</span>
               </>
             ) : (
               <span className="font-bold">৳{product.price}</span>
@@ -64,6 +95,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

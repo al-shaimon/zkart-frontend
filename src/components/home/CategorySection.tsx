@@ -1,17 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { API_BASE_URL } from '@/config/api';
-
-interface Category {
-  id: string;
-  name: string;
-  image: string;
-  description: string | null;
-}
+import { Category } from '@/types/api';
+import CategorySkeleton from './CategorySkeleton';
 
 export default function CategorySection() {
   const router = useRouter();
@@ -38,33 +33,34 @@ export default function CategorySection() {
     router.push(`/products?category=${categoryId}`);
   };
 
-  if (loading) {
-    return <div className="h-[200px] bg-gray-100 animate-pulse rounded-lg" />;
-  }
-
   return (
     <section className="py-8">
       <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
       <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 p-4">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              className="flex flex-col items-center p-4 cursor-pointer hover:scale-105 transition-transform bg-white rounded-lg shadow-sm hover:shadow-md"
-              onClick={() => handleCategoryClick(category.id)}
-            >
-              <div className="relative w-[64px] h-[64px] mb-2">
-                <Image 
-                  src={category.image} 
-                  alt={category.name} 
-                  fill 
-                  className="object-contain"
-                />
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 p-4">
+            {[...Array(8)].map((_, index) => (
+              <CategorySkeleton key={index} />
+            ))}
+          </div>
+        ) : categories.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 p-2">
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                className="flex flex-col items-center p-4 cursor-pointer hover:scale-105 transition-transform bg-white rounded-lg shadow-sm hover:shadow-md"
+                onClick={() => handleCategoryClick(category.id)}
+              >
+                <div className="relative w-16 h-16 mb-2">
+                  <Image src={category.image} alt={category.name} fill className="object-contain" />
+                </div>
+                <p className="text-sm text-center font-medium text-gray-700">{category.name}</p>
               </div>
-              <p className="text-sm text-center font-medium text-gray-700">{category.name}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">No categories available</div>
+        )}
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </section>

@@ -1,34 +1,50 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Scale, Loader2 } from 'lucide-react';
 import { useCompare } from '@/contexts/compare-context';
 import { Product } from '@/types/api';
-import { Scale } from 'lucide-react';
 
 interface CompareButtonProps {
   product: Product;
 }
 
 export default function CompareButton({ product }: CompareButtonProps) {
-  const { compareProducts, addToCompare, removeFromCompare } = useCompare();
+  const { addToCompare, compareProducts } = useCompare();
+  const [isAdding, setIsAdding] = useState(false);
+
   const isInCompare = compareProducts.some((p) => p.id === product.id);
 
   const handleCompare = async () => {
-    if (isInCompare) {
-      await removeFromCompare(product.id);
-    } else {
+    if (isInCompare) return;
+    
+    setIsAdding(true);
+    try {
       await addToCompare(product);
+    } finally {
+      setIsAdding(false);
     }
   };
 
   return (
     <Button
-      variant={isInCompare ? 'destructive' : 'secondary'}
+      variant="outline"
       onClick={handleCompare}
-      className="w-full"
+      disabled={isInCompare || isAdding}
+      className="w-full h-10"
     >
-      <Scale className="w-4 h-4 mr-2" />
-      {isInCompare ? 'Remove from Compare' : 'Add to Compare'}
+      {isAdding ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          Adding to compare...
+        </>
+      ) : (
+        <>
+          <Scale className="w-4 h-4 mr-2" />
+          {isInCompare ? 'In Compare' : 'Add to Compare'}
+        </>
+      )}
     </Button>
   );
 }

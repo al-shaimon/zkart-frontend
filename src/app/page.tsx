@@ -17,7 +17,7 @@ export default function Home() {
         <RecentlyViewedProducts />
         <FollowedShopsProducts />
 
-        <section className="py-8">
+        <section id="products" className="py-8">
           <h2 className="text-2xl font-bold mb-6">All Products</h2>
           <ProductGrid />
         </section>

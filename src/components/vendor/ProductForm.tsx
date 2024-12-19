@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+// import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { ImagePlus, X } from 'lucide-react';
@@ -85,7 +85,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
         if (data.success) {
           setCategories(data.data);
         }
-      } catch  {
+      } catch {
         toast.error('Failed to fetch categories');
       }
     }
@@ -108,23 +108,21 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
 
       // Set existing images
       if (product.images) {
-        setImageUrls(product.images.map(img => img.url));
+        setImageUrls(product.images.map((img) => img.url));
       }
     }
   }, [product, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     if (selectedImages.length + files.length > MAX_IMAGES) {
       toast.error(`You can only upload up to ${MAX_IMAGES} images`);
       return;
     }
 
     const invalidFiles = files.filter(
-      file => 
-        file.size > MAX_FILE_SIZE || 
-        !ACCEPTED_IMAGE_TYPES.includes(file.type)
+      (file) => file.size > MAX_FILE_SIZE || !ACCEPTED_IMAGE_TYPES.includes(file.type)
     );
 
     if (invalidFiles.length > 0) {
@@ -132,20 +130,22 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       return;
     }
 
-    setSelectedImages(prev => [...prev, ...files]);
-    const newImageUrls = files.map(file => URL.createObjectURL(file));
-    setImageUrls(prev => [...prev, ...newImageUrls]);
+    setSelectedImages((prev) => [...prev, ...files]);
+    const newImageUrls = files.map((file) => URL.createObjectURL(file));
+    setImageUrls((prev) => [...prev, ...newImageUrls]);
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-    setImageUrls(prev => prev.filter((_, i) => i !== index));
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = async (data: ProductFormValues) => {
-    if (selectedImages.length === 0) {
-      toast.error('Please select at least one image');
-      return;
+    if (!isEditing) {
+      if (selectedImages.length === 0) {
+        toast.error('Please select at least one image');
+        return;
+      }
     }
 
     // Calculate discounted price if discount is provided
@@ -159,7 +159,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
         toast.error('Discount cannot be 100% or more');
         return;
       }
-      const discountedPrice = price - (price * (discount / 100));
+      const discountedPrice = price - price * (discount / 100);
       if (flashSalePrice && discountedPrice <= flashSalePrice) {
         toast.error('Flash sale price must be lower than the discounted price');
         return;
@@ -172,7 +172,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
     setLoading(true);
     try {
       const formData = new FormData();
-      
+
       // Prepare the data with calculated prices
       const productData = {
         ...data,
@@ -187,9 +187,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
         formData.append('images', image);
       });
 
-      const url = isEditing 
-        ? `${API_BASE_URL}/product/${product.id}`
-        : `${API_BASE_URL}/product`;
+      const url = isEditing ? `${API_BASE_URL}/product/${product.id}` : `${API_BASE_URL}/product`;
 
       const response = await fetch(url, {
         method: isEditing ? 'PATCH' : 'POST',
@@ -215,27 +213,29 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   };
 
   // Add a helper function to show calculated prices
-  const calculatePrices = () => {
-    const price = parseFloat(form.watch('price') || '0');
-    const discount = parseFloat(form.watch('discount') || '0');
-    const flashSalePrice = parseFloat(form.watch('flashSalePrice') || '0');
+  // const calculatePrices = () => {
+  //   const price = parseFloat(form.watch('price') || '0');
+  //   const discount = parseFloat(form.watch('discount') || '0');
+  //   const flashSalePrice = parseFloat(form.watch('flashSalePrice') || '0');
 
-    if (!price) return null;
+  //   if (!price) return null;
 
-    const discountedPrice = discount > 0 ? price - (price * (discount / 100)) : price;
+  //   const discountedPrice = discount > 0 ? price - price * (discount / 100) : price;
 
-    return (
-      <div className="text-sm text-muted-foreground mt-2">
-        <div>Regular Price: ৳{price.toFixed(2)}</div>
-        {discount > 0 && (
-          <div>Discounted Price: ৳{discountedPrice.toFixed(2)} ({discount}% off)</div>
-        )}
-        {isFlashSale && flashSalePrice > 0 && (
-          <div>Flash Sale Price: ৳{flashSalePrice.toFixed(2)}</div>
-        )}
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="text-sm text-muted-foreground mt-2">
+  //       <div>Regular Price: ৳{price.toFixed(2)}</div>
+  //       {discount > 0 && (
+  //         <div>
+  //           Discounted Price: ৳{discountedPrice.toFixed(2)} ({discount}% off)
+  //         </div>
+  //       )}
+  //       {isFlashSale && flashSalePrice > 0 && (
+  //         <div>Flash Sale Price: ৳{flashSalePrice.toFixed(2)}</div>
+  //       )}
+  //     </div>
+  //   );
+  // };
 
   return (
     <Card className="p-6">
@@ -365,7 +365,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="discount"
               render={({ field }) => (
@@ -377,14 +377,14 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
           </div>
 
           {/* Price calculations display */}
-          {calculatePrices()}
+          {/* {calculatePrices()} */}
 
           <div className="space-y-4">
-            <FormField
+            {/* <FormField
               control={form.control}
               name="isFlashSale"
               render={({ field }) => (
@@ -396,14 +396,11 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                     </div>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
-            />
+            /> */}
 
             {isFlashSale && (
               <FormField
@@ -429,6 +426,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                   <span className="animate-spin mr-2">⏳</span>
                   Creating...
                 </>
+              ) : isEditing ? (
+                'Update Product'
               ) : (
                 'Create Product'
               )}
@@ -438,4 +437,4 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       </Form>
     </Card>
   );
-} 
+}

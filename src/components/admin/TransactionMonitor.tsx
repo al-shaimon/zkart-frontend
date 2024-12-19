@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/config/api';
 import {
   Table,
@@ -11,14 +11,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import Image from 'next/image';
-import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import ReviewDialog from '@/components/reviews/ReviewDialog';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import Image from 'next/image';
+import { format } from 'date-fns';
 
 interface OrderItem {
   id: string;
@@ -31,17 +29,24 @@ interface OrderItem {
   };
 }
 
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  contactNumber: string;
+  address: string;
+}
+
 interface Order {
   id: string;
   totalAmount: number;
   status: string;
   createdAt: string;
   paymentStatus: string;
+  paymentMethod: string;
+  discount: number;
   orderItems: OrderItem[];
-  shop: {
-    id: string;
-    name: string;
-  };
+  customer: Customer;
 }
 
 interface OrdersResponse {
@@ -53,47 +58,15 @@ interface OrdersResponse {
   };
 }
 
-interface Review {
-  id: string;
-  productId: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-}
-
-interface OrderWithReviews extends Order {
-  reviews?: Review[];
-}
-
-export default function OrderHistory() {
-  const [orders, setOrders] = useState<OrderWithReviews[]>([]);
+export default function TransactionMonitor() {
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [reviewProduct, setReviewProduct] = useState<{
-    id: string;
-    orderId: string;
-    name: string;
-  } | null>(null);
 
-  const fetchOrderReviews = async (orderId: string) => {
+  const fetchOrders = async (pageNum: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/review/order/${orderId}`, {
-        headers: {
-          Authorization: `${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await response.json();
-      return data.success ? data.data : [];
-    } catch (error) {
-      console.error('Failed to fetch reviews:', error);
-      return [];
-    }
-  };
-
-  const fetchOrders = useCallback(async (pageNum: number) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/order/my-orders?page=${pageNum}&limit=10`, {
+      const response = await fetch(`${API_BASE_URL}/order?page=${pageNum}&limit=10`, {
         headers: {
           Authorization: `${localStorage.getItem('token')}`,
         },
@@ -101,31 +74,23 @@ export default function OrderHistory() {
       const data: OrdersResponse = await response.json();
 
       if (data.data) {
-        // Fetch reviews for each order
-        const ordersWithReviews = await Promise.all(
-          data.data.map(async (order) => {
-            const reviews = await fetchOrderReviews(order.id);
-            return { ...order, reviews };
-          })
-        );
-
         if (pageNum === 1) {
-          setOrders(ordersWithReviews);
+          setOrders(data.data);
         } else {
-          setOrders((prev) => [...prev, ...ordersWithReviews]);
+          setOrders((prev) => [...prev, ...data.data]);
         }
         setHasMore(data.data.length === 10);
       }
-    } catch (error) {
-      toast.error('Failed to fetch orders: ' + error);
+    } catch {
+      toast.error('Failed to fetch orders');
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchOrders(page);
-  }, [page, fetchOrders]);
+  }, [page]);
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
@@ -153,32 +118,15 @@ export default function OrderHistory() {
     }
   };
 
-  // Helper function to check if a product has been reviewed
-  const hasReview = (orderId: string, productId: string) => {
-    const order = orders.find((o) => o.id === orderId);
-    return order?.reviews?.some((review) => review.productId === productId);
-  };
-
   if (loading) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
           <Card key={i} className="p-4">
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-[250px]" />
-              <Skeleton className="h-4 w-[200px]" />
-            </div>
+            <Skeleton className="h-24 w-full" />
           </Card>
         ))}
       </div>
-    );
-  }
-
-  if (orders.length === 0) {
-    return (
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">No orders found</p>
-      </Card>
     );
   }
 
@@ -190,10 +138,12 @@ export default function OrderHistory() {
             <TableRow>
               <TableHead className="w-[100px]">Order ID</TableHead>
               <TableHead className="w-[120px]">Date</TableHead>
-              <TableHead className="lg:w-[100px]">Items</TableHead>
-              <TableHead className="text-right">Total</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-center">Payment</TableHead>
+              <TableHead className="text-center">Method</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -201,6 +151,16 @@ export default function OrderHistory() {
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.id.slice(0, 8)}</TableCell>
                 <TableCell>{format(new Date(order.createdAt), 'MMM dd, yyyy')}</TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="font-medium">{order.customer.name}</div>
+                    <div className="text-sm text-muted-foreground">{order.customer.email}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {order.customer.contactNumber}
+                    </div>
+                    <div className="text-sm text-muted-foreground">{order.customer.address}</div>
+                  </div>
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-2">
                     {order.orderItems.map((item) => (
@@ -214,41 +174,23 @@ export default function OrderHistory() {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <Link
-                            href={`/products/${item.product.id}`}
-                            className="text-sm hover:text-primary truncate block"
-                          >
-                            {item.product.name}
-                          </Link>
+                          <div className="text-sm truncate">{item.product.name}</div>
                           <div className="text-sm text-muted-foreground">
                             ৳{item.price} × {item.quantity}
                           </div>
-                          {order.status === 'DELIVERED' &&
-                            !hasReview(order.id, item.product.id) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="mt-2"
-                                onClick={() =>
-                                  setReviewProduct({
-                                    id: item.product.id,
-                                    orderId: order.id,
-                                    name: item.product.name,
-                                  })
-                                }
-                              >
-                                Write Review
-                              </Button>
-                            )}
-                          {hasReview(order.id, item.product.id) && (
-                            <div className="text-sm text-green-600 mt-2">✓ Reviewed</div>
-                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">৳{order.totalAmount}</TableCell>
+                <TableCell className="text-right">
+                  <div className="space-y-1">
+                    <div>৳{order.totalAmount}</div>
+                    {order.discount > 0 && (
+                      <div className="text-sm text-green-600">-৳{order.discount}</div>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary" className={getOrderStatusColor(order.status)}>
                     {order.status}
@@ -259,24 +201,14 @@ export default function OrderHistory() {
                     {order.paymentStatus}
                   </Badge>
                 </TableCell>
+                <TableCell className="text-center">
+                  <Badge variant="outline">{order.paymentMethod}</Badge>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-
-      <ReviewDialog
-        open={!!reviewProduct}
-        onClose={() => setReviewProduct(null)}
-        productId={reviewProduct?.id || ''}
-        orderId={reviewProduct?.orderId || ''}
-        productName={reviewProduct?.name || ''}
-        onSuccess={() => {
-          fetchOrders(1);
-          setOrders([]);
-          setPage(1);
-        }}
-      />
 
       {hasMore && (
         <div className="flex justify-center pt-4">
@@ -287,4 +219,4 @@ export default function OrderHistory() {
       )}
     </div>
   );
-}
+} 

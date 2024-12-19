@@ -21,6 +21,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Product } from '@/types/shop';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Trash2 } from 'lucide-react';
 
 const MAX_FILE_SIZE = 5000000; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -58,6 +60,7 @@ export default function ShopForm() {
   const [updating, setUpdating] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const form = useForm<ShopFormValues>({
     resolver: zodResolver(shopSchema),
@@ -147,17 +150,21 @@ export default function ShopForm() {
 
       toast.success(result.message);
       
-      // Refresh shop data after update
-      if (shop) {
-        const updatedShopResponse = await fetch(`${API_BASE_URL}/shop/my-shop`, {
-          headers: {
-            Authorization: `${localStorage.getItem('token')}`,
-          },
+      // Fetch updated shop data regardless of create or update
+      const updatedShopResponse = await fetch(`${API_BASE_URL}/shop/my-shop`, {
+        headers: {
+          Authorization: `${localStorage.getItem('token')}`,
+        },
+      });
+      const updatedShopData = await updatedShopResponse.json();
+      
+      if (updatedShopData.success) {
+        setShop(updatedShopData.data);
+        // Reset form with new data
+        form.reset({
+          name: updatedShopData.data.name,
+          description: updatedShopData.data.description,
         });
-        const updatedShopData = await updatedShopResponse.json();
-        if (updatedShopData.success) {
-          setShop(updatedShopData.data);
-        }
       }
 
       setSelectedFile(null);
@@ -165,6 +172,39 @@ export default function ShopForm() {
       toast.error(error instanceof Error ? error.message : 'Something went wrong');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleDeleteShop = async () => {
+    if (!shop) return;
+
+    setUpdating(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/shop/${shop.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `${localStorage.getItem('token')}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete shop');
+      }
+
+      toast.success('Shop deleted successfully');
+      // Reset everything
+      setShop(null);
+      form.reset({
+        name: '',
+        description: '',
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete shop');
+    } finally {
+      setUpdating(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -186,20 +226,31 @@ export default function ShopForm() {
     <Card className="p-6 space-y-6">
       {shop && (
         <div className="space-y-4">
-          <div className="flex justify-center">
-            <div className="relative w-32 h-32 rounded-lg overflow-hidden">
-              <Image
-                src={shop.logo}
-                alt={shop.name}
-                fill
-                className="object-cover"
-              />
+          <div className="flex justify-between items-start">
+            <div className="flex-1 flex flex-col items-center">
+              <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
+                <Image
+                  src={shop.logo}
+                  alt={shop.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="text-center mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {shop.products.length} Products · {shop.followers.length} Followers
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              {shop.products.length} Products · {shop.followers.length} Followers
-            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-destructive hover:text-destructive"
+              title="Delete Shop"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -207,7 +258,7 @@ export default function ShopForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <FormLabel>Shop Logo</FormLabel>
+            <FormLabel>Shop Logo {shop ? '(Optional)' : ''}</FormLabel>
             <div className="flex items-center gap-4">
               <Input
                 type="file"
@@ -265,6 +316,16 @@ export default function ShopForm() {
           </div>
         </form>
       </Form>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteShop}
+        title="Delete Shop"
+        description="Are you sure you want to delete your shop? This will permanently remove all your products and cannot be undone."
+        confirmText="Delete Shop"
+        cancelText="Cancel"
+      />
     </Card>
   );
 } 

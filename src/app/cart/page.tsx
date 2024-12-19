@@ -42,6 +42,8 @@ export default function CartPage() {
   const [processingCheckout, setProcessingCheckout] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isPaymentInitiated, setIsPaymentInitiated] = useState(false);
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -68,44 +70,26 @@ export default function CartPage() {
 
   const handleRemoveItem = async (itemId: string) => {
     try {
+      setRemovingItemId(itemId);
       await dispatch(removeFromCart(itemId)).unwrap();
       toast.success('Item removed from cart');
     } catch {
       toast.error('Failed to remove item');
+    } finally {
+      setRemovingItemId(null);
     }
   };
 
   const handleClearCart = async () => {
-    toast.custom(
-      (t) => (
-        <div className="bg-background border rounded-lg p-4 shadow-lg">
-          <p className="mb-4">Are you sure you want to clear your cart?</p>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" size="sm" onClick={() => toast.dismiss(t)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={async () => {
-                try {
-                  await dispatch(clearCart()).unwrap();
-                  toast.success('Cart cleared successfully');
-                } catch {
-                  toast.error('Failed to clear cart');
-                }
-                toast.dismiss(t);
-              }}
-            >
-              Clear Cart
-            </Button>
-          </div>
-        </div>
-      ),
-      {
-        duration: 2000,
-      }
-    );
+    try {
+      setIsClearing(true);
+      await dispatch(clearCart()).unwrap();
+      toast.success('Cart cleared');
+    } catch {
+      toast.error('Failed to clear cart');
+    } finally {
+      setIsClearing(false);
+    }
   };
 
   const handleApplyCoupon = async () => {
@@ -183,11 +167,15 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6">Shopping Cart</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Shopping Cart</h1>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           {items.map((item) => {
             if (!item?.product) return null;
+
+            const isRemoving = removingItemId === item.id;
 
             return (
               <div key={item.id} className="flex gap-4 border-b py-4">
@@ -217,7 +205,7 @@ export default function CartPage() {
                       variant="outline"
                       size="icon"
                       onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
+                      disabled={item.quantity <= 1 || isRemoving}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -226,7 +214,7 @@ export default function CartPage() {
                       variant="outline"
                       size="icon"
                       onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                      disabled={item.quantity >= (item.product.stock || 0)}
+                      disabled={item.quantity >= (item.product.stock || 0) || isRemoving}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -234,8 +222,13 @@ export default function CartPage() {
                       variant="destructive"
                       size="icon"
                       onClick={() => handleRemoveItem(item.id)}
+                      disabled={isRemoving}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {isRemoving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -254,8 +247,17 @@ export default function CartPage() {
                   onClick={handleClearCart}
                   className="text-red-500 hover:text-red-700 hover:bg-red-50"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear Cart
+                  {isClearing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Clearing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Clear Cart
+                    </>
+                  )}
                 </Button>
               )}
             </div>

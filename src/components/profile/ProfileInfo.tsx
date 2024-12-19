@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 
 const MAX_FILE_SIZE = 5000000; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -151,107 +153,120 @@ export default function ProfileInfo() {
   }
 
   return (
-    <Card className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-        <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100">
-          {profile?.profilePhoto ? (
-            <Image
-              src={profile.profilePhoto}
-              alt={profile.name}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-primary/10">
-              <span className="text-2xl text-primary">
-                {profile?.name?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="text-center sm:text-left">
-          <h2 className="text-xl font-semibold">{profile?.name}</h2>
-          <p className="text-muted-foreground">{profile?.email}</p>
-        </div>
-      </div>
+    <Tabs defaultValue="general" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="general">General</TabsTrigger>
+        <TabsTrigger value="security">Security</TabsTrigger>
+      </TabsList>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <FormLabel>Profile Photo</FormLabel>
-            <div className="flex items-center gap-4">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="cursor-pointer flex-1"
-              />
-              {selectedFile && (
-                <p className="text-sm text-muted-foreground">
-                  Selected: {selectedFile.name}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="contactNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Number</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={updating}>
-              {updating ? (
-                <>
-                  <span className="animate-spin mr-2">⏳</span>
-                  Updating...
-                </>
+      <TabsContent value="general">
+        <Card className="p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100">
+              {profile?.profilePhoto ? (
+                <Image
+                  src={profile.profilePhoto}
+                  alt={profile.name}
+                  fill
+                  className="object-cover"
+                />
               ) : (
-                'Update Profile'
+                <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                  <span className="text-2xl text-primary">
+                    {profile?.name?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
               )}
-            </Button>
+            </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-xl font-semibold">{profile?.name}</h2>
+              <p className="text-muted-foreground">{profile?.email}</p>
+            </div>
           </div>
-        </form>
-      </Form>
-    </Card>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <FormLabel>Profile Photo</FormLabel>
+                <div className="flex items-center gap-4">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="cursor-pointer flex-1"
+                  />
+                  {selectedFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {selectedFile.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contactNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Number</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={updating}>
+                  {updating ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Profile'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="security">
+        <ChangePasswordForm />
+      </TabsContent>
+    </Tabs>
   );
 } 

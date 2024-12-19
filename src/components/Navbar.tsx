@@ -1,7 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { Menu, X, ShoppingCart, Search, User, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
+import {
+  Menu,
+  X,
+  ShoppingCart,
+  Search,
+  User,
+  LogOut,
+  LayoutDashboard,
+  UserCircle,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import SearchCommand from './search/SearchCommand';
 import CartIcon from './cart/CartIcon';
@@ -124,10 +133,10 @@ export default function Navbar() {
             <Link href="/products" className="hover:text-gray-300">
               Products
             </Link>
-            <Link href="/categories" className="hover:text-gray-300">
+            {/* <Link href="/categories" className="hover:text-gray-300">
               Categories
-            </Link>
-            <CartIcon />
+            </Link> */}
+            {user?.role === 'CUSTOMER' && <CartIcon />}
             <div className="relative" ref={dropdownRef}>
               <button onClick={handleUserIconClick} className="hover:text-gray-300">
                 <User className="h-6 w-6" />
@@ -184,9 +193,11 @@ export default function Navbar() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <Link href="/cart" className="p-2 hover:bg-gray-700 rounded-full">
-              <ShoppingCart className="h-5 w-5" />
-            </Link>
+            {user?.role === 'CUSTOMER' && (
+              <Link href="/cart" className="p-2 hover:bg-gray-700 rounded-full">
+                <ShoppingCart className="h-5 w-5" />
+              </Link>
+            )}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 hover:bg-gray-700 rounded-full"
@@ -207,13 +218,13 @@ export default function Navbar() {
               >
                 Products
               </Link>
-              <Link
+              {/* <Link
                 href="/categories"
                 className="flex items-center gap-2 px-6 py-3 hover:bg-gray-700"
                 onClick={() => setIsOpen(false)}
               >
                 Categories
-              </Link>
+              </Link> */}
               {renderAuthLinks()}
             </div>
           </div>
