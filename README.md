@@ -91,13 +91,43 @@ NEXT_PUBLIC_API_URL=your_api_url
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key
 ```
 
-4. Run the development server:
+4. Set up environment variables: Create a `.env` file in Backend Code with:
+
+```env
+NODE_ENV="development"
+PORT=5000
+
+DATABASE_URL=postgresql_database_url
+
+JWT_SECRET=jwt_secret
+EXPIRES_IN=jwt_expires_in
+
+REFRESH_TOKEN_SECRET=refresh_token_secret
+REFRESH_TOKEN_EXPIRES_IN=refresh_token_expires
+
+RESET_PASS_TOKEN=reset_pass_token
+RESET_PASS_TOKEN_EXPIRES_IN=reset_password_token_expires_in
+RESET_PASS_LINK=your_reset_password_link
+
+EMAIL=your_gmail
+APP_PASS=your_gmail_app_pass
+
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+
+CURRENCY=your_currency
+```
+
+5. Run the development server:
 
 ```bash
 yarn dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## 🎯 Core Functionalities
 
