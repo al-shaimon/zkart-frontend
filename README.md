@@ -1,4 +1,4 @@
-# ZKart - E-Commerce Platform
+# ZKart - Your Ultimate Shopping Destination
 
 A comprehensive e-commerce platform built with Next.js and TypeScript, offering seamless shopping
 experiences for customers, vendors, and administrators.
