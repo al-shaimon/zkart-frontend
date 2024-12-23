@@ -21,10 +21,10 @@ import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
 
 const MAX_FILE_SIZE = 5000000; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const signupSchema = z.object({
-  role: z.enum(['customer', 'vendor', 'admin']),
+  role: z.enum(['customer', 'vendor']),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -32,14 +32,11 @@ const signupSchema = z.object({
   address: z.string().min(5, 'Address must be at least 5 characters'),
   profilePhoto: z
     .instanceof(FileList)
-    .refine((files) => files?.length === 1, "Profile photo is required")
-    .refine(
-      (files) => files?.[0]?.size <= MAX_FILE_SIZE,
-      `Max file size is 5MB.`
-    )
+    .refine((files) => files?.length === 1, 'Profile photo is required')
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported."
+      'Only .jpg, .jpeg, .png and .webp formats are supported.'
     )
     .optional(),
 });
@@ -66,12 +63,9 @@ export default function SignupPage() {
     setLoading(true);
     try {
       let endpoint;
-      switch(data.role) {
+      switch (data.role) {
         case 'vendor':
           endpoint = `${API_BASE_URL}/user/create-vendor`;
-          break;
-        case 'admin':
-          endpoint = `${API_BASE_URL}/user/create-admin`;
           break;
         default:
           endpoint = `${API_BASE_URL}/user/create-customer`;
@@ -87,7 +81,7 @@ export default function SignupPage() {
           name: data.name,
           contactNumber: data.contactNumber,
           address: data.address,
-        }
+        },
       };
 
       console.log('Payload:', payload);
@@ -132,9 +126,7 @@ export default function SignupPage() {
       <div className="space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Create an Account</h1>
-          <p className="text-muted-foreground mt-2">
-            Choose your role and fill in your details
-          </p>
+          <p className="text-muted-foreground mt-2">Choose your role and fill in your details</p>
         </div>
 
         <Form {...form}>
@@ -158,10 +150,6 @@ export default function SignupPage() {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="vendor" id="vendor" />
                         <label htmlFor="vendor">Vendor</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="admin" id="admin" />
-                        <label htmlFor="admin">Admin</label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -205,11 +193,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="password" 
-                      placeholder="Create a password" 
-                      {...field} 
-                    />
+                    <Input type="password" placeholder="Create a password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -223,10 +207,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Contact Number</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter your contact number" 
-                      {...field} 
-                    />
+                    <Input placeholder="Enter your contact number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -240,10 +221,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter your address" 
-                      {...field} 
-                    />
+                    <Input placeholder="Enter your address" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,4 +266,4 @@ export default function SignupPage() {
       </div>
     </div>
   );
-} 
+}
