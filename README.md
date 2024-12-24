@@ -5,7 +5,7 @@ experiences for customers, vendors, and administrators.
 
 ## 🌐 Live URLs
 
-- **Frontend:** [https://zkart.vercel.app](https://zkart.vercel.app)
+- **Frontend:** [https://zkart-frontend.vercel.app](https://zkart-frontend.vercel.app)
 - **Backend:** [https://zkart.alshaimon.com/api/v1](https://zkart.alshaimon.com/api/v1)
 
 ## 🛠️ Technology Stack
