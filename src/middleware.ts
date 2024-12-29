@@ -18,6 +18,8 @@ export function middleware(request: NextRequest) {
     pathname === '/' ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/products') ||
+    pathname.startsWith('/blog') ||
+    pathname.startsWith('/contact') ||
     pathname.startsWith('/categories') ||
     pathname.startsWith('/shop') ||
     pathname.startsWith('/cart') ||
