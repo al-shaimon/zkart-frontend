@@ -1,26 +1,68 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import HeroSection from '@/components/home/HeroSection';
 import CategorySection from '@/components/home/CategorySection';
 import FlashSaleSection from '@/components/home/FlashSaleSection';
-import ProductGrid from '@/components/products/ProductGrid';
+import ProductCard from '@/components/products/ProductCard';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import FollowedShopsProducts from '@/components/home/FollowedShopsProducts';
 import RecentlyViewedProducts from '@/components/home/RecentlyViewedProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { blogs } from './blog/data';
 import Footer from '@/components/Footer';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/config/api';
 import { toast } from 'sonner';
+import { Category, Product } from '@/types/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import ProductSkeleton from '@/components/products/ProductSkeleton';
+import Image from 'next/image';
+import { blogs } from '@/app/blog/data';
+
+interface CategoryWithProducts extends Category {
+  products: Product[];
+}
 
 export default function Home() {
+  const [categoriesWithProducts, setCategoriesWithProducts] = useState<CategoryWithProducts[]>([]);
+  const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategoriesWithProducts = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/category`);
+        const data = await response.json();
+
+        if (data.success) {
+          // Fetch products for each category
+          const categoriesPromises = data.data.map(async (category: Category) => {
+            const productsResponse = await fetch(`${API_BASE_URL}/category/${category.id}`);
+            const productsData = await productsResponse.json();
+            return {
+              ...category,
+              products: productsData.success ? productsData.data.products : [],
+            };
+          });
+
+          const categoriesData = await Promise.all(categoriesPromises);
+          // Filter out categories with no products
+          const filteredCategories = categoriesData.filter(
+            (category) => category.products && category.products.length > 0
+          );
+          setCategoriesWithProducts(filteredCategories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories with products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoriesWithProducts();
+  }, []);
 
   const handleNewsletterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,15 +98,45 @@ export default function Home() {
 
       <div className="container mx-auto px-4">
         <CategorySection />
-
         <FlashSaleSection />
         <RecentlyViewedProducts />
         <FollowedShopsProducts />
 
-        <section id="products" className="py-8">
-          <h2 className="text-2xl font-bold mb-6">All Products</h2>
-          <ProductGrid />
-        </section>
+        {/* Products by Category */}
+        {loading
+          ? // Skeleton Loading
+            Array.from({ length: 3 }).map((_, index) => (
+              <section key={index} className="py-8">
+                <div className="flex justify-between items-center mb-6">
+                  <Skeleton className="h-8 w-48" />
+                  <Skeleton className="h-6 w-24" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {Array.from({ length: 4 }).map((_, productIndex) => (
+                    <ProductSkeleton key={productIndex} />
+                  ))}
+                </div>
+              </section>
+            ))
+          : categoriesWithProducts.map((category) => (
+              <section key={category.id} className="py-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">{category.name}</h2>
+                  <Link
+                    href={`/products?category=${category.id}`}
+                    className="text-primary hover:text-primary/80 flex items-center gap-2"
+                  >
+                    View All
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {category.products.slice(0, 4).map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              </section>
+            ))}
 
         {/* Blog Section */}
         <section className="py-8">

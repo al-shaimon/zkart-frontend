@@ -38,13 +38,13 @@ export default function CategorySection() {
       <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
       <ScrollArea className="w-full whitespace-nowrap rounded-lg">
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 p-4">
-            {[...Array(8)].map((_, index) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+            {[...Array(10)].map((_, index) => (
               <CategorySkeleton key={index} />
             ))}
           </div>
         ) : categories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 p-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 p-2">
             {categories.map((category) => (
               <div
                 key={category.id}

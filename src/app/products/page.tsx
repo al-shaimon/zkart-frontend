@@ -11,6 +11,14 @@ function ProductsContent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Products</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Explore our wide range of high-quality products. From the latest electronics to trending
+          accessories, find everything you need at competitive prices.
+        </p>
+      </div>
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
           <ProductGrid categoryId={searchParams.get('category')} />
@@ -31,7 +39,7 @@ export default function ProductsPage() {
       }
     >
       <ProductsContent />
-      <Footer/>
+      <Footer />
     </Suspense>
   );
 }
