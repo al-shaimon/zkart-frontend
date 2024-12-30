@@ -55,7 +55,7 @@ export default function NewsletterManagement() {
           setError(data.message);
           toast.error(data.message);
         }
-      } catch (error) {
+      } catch  {
         setError('Failed to fetch subscribers');
         toast.error('Failed to fetch subscribers');
       } finally {
