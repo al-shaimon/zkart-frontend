@@ -14,6 +14,7 @@ import ProductDetailsSkeleton from '@/components/products/ProductDetailsSkeleton
 import AddToCartButton from '@/components/products/AddToCartButton';
 import { useAuth } from '@/contexts/auth-context';
 import CompareButton from '@/components/products/CompareButton';
+import Footer from '@/components/Footer';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -80,19 +81,19 @@ export default function ProductDetails() {
               <span>{product.shop.name}</span>
             </Link>
 
-            {product.reviews && product.reviews.length > 0 && (
-              <div className="flex items-center">
-                <Rating
-                  value={
-                    product.reviews.reduce((acc, review) => acc + review.rating, 0) /
-                    product.reviews.length
-                  }
-                />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  ({product.reviews.length} reviews)
-                </span>
-              </div>
-            )}
+            <div className="flex items-center">
+              <Rating
+                value={
+                  product.reviews?.length
+                    ? product.reviews.reduce((acc, review) => acc + review.rating, 0) /
+                      product.reviews.length
+                    : 0
+                }
+              />
+              <span className="ml-2 text-sm text-muted-foreground">
+                ({product.reviews?.length || 0} reviews)
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -149,6 +150,7 @@ export default function ProductDetails() {
       <div className="mt-16">
         <RelatedProducts categoryId={product.category.id} currentProductId={product.id} />
       </div>
+      <Footer/>
     </div>
   );
 }

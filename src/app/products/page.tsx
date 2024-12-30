@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductGrid from '@/components/products/ProductGrid';
 import { Loader2 } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -30,6 +31,7 @@ export default function ProductsPage() {
       }
     >
       <ProductsContent />
+      <Footer/>
     </Suspense>
   );
 }

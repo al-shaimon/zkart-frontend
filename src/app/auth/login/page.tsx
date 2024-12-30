@@ -19,6 +19,9 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/config/api';
 import { useAuth } from '@/contexts/auth-context';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { User, UserCog } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -27,10 +30,30 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+// Demo credentials
+const DEMO_CREDENTIALS = {
+  user: {
+    email: 'user@gmail.com',
+    password: '111111',
+  },
+  admin: {
+    email: 'admin@example.com',
+    password: '111111',
+  },
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { login, user } = useAuth();
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
   useEffect(() => {
     if (user) {
@@ -41,14 +64,6 @@ export default function LoginPage() {
       }
     }
   }, [user, router]);
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
 
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
@@ -69,7 +84,6 @@ export default function LoginPage() {
 
       // Login with the access token
       login(result.data.accessToken);
-
       toast.success('Logged in successfully');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to login');
@@ -78,64 +92,96 @@ export default function LoginPage() {
     }
   };
 
+  // Function to fill demo credentials
+  const fillDemoCredentials = (type: 'user' | 'admin') => {
+    const credentials = DEMO_CREDENTIALS[type];
+    form.setValue('email', credentials.email);
+    form.setValue('password', credentials.password);
+  };
+
   return (
-    <div className="container max-w-md mx-auto px-4 py-8">
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Welcome Back</h1>
-          <p className="text-muted-foreground mt-2">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">
             Enter your credentials to access your account
-          </p>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="Enter your email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="Enter your password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Demo Credential Buttons */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => fillDemoCredentials('user')}
+              type="button"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Demo User
             </Button>
-          </form>
-        </Form>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => fillDemoCredentials('admin')}
+              type="button"
+            >
+              <UserCog className="w-4 h-4 mr-2" />
+              Demo Admin
+            </Button>
+          </div>
 
-        <div className="space-y-2 text-center text-sm">
-          <p className="text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/auth/signup" className="text-primary hover:underline">
-              Sign up here
+          <Separator className="my-4" />
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter your email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter your password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="space-y-2 text-center text-sm">
+            <p className="text-muted-foreground">
+              Don&apos;t have an account?{' '}
+              <Link href="/auth/signup" className="text-primary hover:underline">
+                Sign up here
+              </Link>
+            </p>
+            <Link href="/auth/forgot-password" className="text-primary hover:underline block">
+              Forgot your password?
             </Link>
-          </p>
-          <Link href="/auth/forgot-password" className="text-primary hover:underline block">
-            Forgot your password?
-          </Link>
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

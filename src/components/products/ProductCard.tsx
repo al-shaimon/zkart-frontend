@@ -2,18 +2,20 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { Eye } from 'lucide-react';
 import { Product } from '@/types/api';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Rating from '../ui/Rating';
 import AddToCartButton from './AddToCartButton';
+import { Button } from '@/components/ui/button';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const averageRating = product.reviews?.length 
+  const averageRating = product.reviews?.length
     ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
     : 0;
 
@@ -39,7 +41,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </Badge>
             </div>
           )}
-          
+
           {/* Discount Percentage Badge (only show in flash sale) */}
           {discountPercentage && (
             <div className="absolute top-2 right-2 z-10">
@@ -67,12 +69,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           </Link>
 
           <div className="h-6 mt-2">
-            {product.reviews && product.reviews.length > 0 && (
-              <div className="flex items-center">
-                <Rating value={averageRating} />
-                <span className="text-sm text-gray-500 ml-1">({product.reviews.length})</span>
-              </div>
-            )}
+            <div className="flex items-center">
+              <Rating value={averageRating} />
+              <span className="text-sm text-gray-500 ml-1">({product.reviews?.length || 0})</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
@@ -87,12 +87,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
 
-        <div className="mt-4">
-          <AddToCartButton 
-            productId={product.id} 
-            shopId={product.shop?.id} 
-            stock={product.stock}
-          />
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Link href={`/products/${product.id}`} className="w-full">
+            <Button variant="secondary" className="w-full">
+              <Eye className="w-4 h-4 mr-2" />
+              View Details
+            </Button>
+          </Link>
+          <AddToCartButton productId={product.id} shopId={product.shop?.id} stock={product.stock} />
         </div>
       </div>
     </Card>
