@@ -14,7 +14,6 @@ import ProductDetailsSkeleton from '@/components/products/ProductDetailsSkeleton
 import AddToCartButton from '@/components/products/AddToCartButton';
 import { useAuth } from '@/contexts/auth-context';
 import CompareButton from '@/components/products/CompareButton';
-import Footer from '@/components/Footer';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -150,7 +149,6 @@ export default function ProductDetails() {
       <div className="mt-16">
         <RelatedProducts categoryId={product.category.id} currentProductId={product.id} />
       </div>
-      <Footer/>
     </div>
   );
 }
