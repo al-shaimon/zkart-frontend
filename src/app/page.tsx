@@ -14,8 +14,42 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { blogs } from './blog/data';
 import Footer from '@/components/Footer';
+import { useState } from 'react';
+import { API_BASE_URL } from '@/config/api';
+import { toast } from 'sonner';
 
 export default function Home() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/newsletter/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message);
+        setEmail('');
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error('Failed to subscribe to newsletter');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen">
       <HeroSection />
@@ -81,20 +115,18 @@ export default function Home() {
               Subscribe to our newsletter and get the latest updates on new products, special
               offers, and exclusive deals.
             </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                // Handle newsletter subscription
-              }}
-              className="flex gap-2 max-w-md mx-auto"
-            >
+            <form onSubmit={handleNewsletterSubmit} className="flex gap-2 max-w-md mx-auto">
               <Input
                 type="email"
                 placeholder="Enter your email"
                 className="bg-white text-foreground"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <Button variant="secondary">Subscribe</Button>
+              <Button variant="secondary" type="submit" disabled={loading}>
+                {loading ? 'Subscribing...' : 'Subscribe'}
+              </Button>
             </form>
           </div>
         </section>

@@ -10,6 +10,7 @@ import ShopManagement from '@/components/admin/ShopManagement';
 import CategoryManagement from '@/components/admin/CategoryManagement';
 import TransactionMonitor from '@/components/admin/TransactionMonitor';
 import ReviewMonitor from '@/components/admin/ReviewMonitor';
+import NewsletterManagement from '@/components/admin/NewsletterManagement';
 
 export default function AdminDashboard() {
   const { isAuthenticated, user } = useAuth();
@@ -65,6 +66,12 @@ export default function AdminDashboard() {
               >
                 Reviews
               </TabsTrigger>
+              <TabsTrigger
+                value="newsletter"
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+              >
+                Newsletter
+              </TabsTrigger>
             </TabsList>
 
             <div className="p-4">
@@ -91,10 +98,14 @@ export default function AdminDashboard() {
               <TabsContent value="reviews">
                 <ReviewMonitor />
               </TabsContent>
+
+              <TabsContent value="newsletter">
+                <NewsletterManagement />
+              </TabsContent>
             </div>
           </Tabs>
         </div>
       </div>
     </div>
   );
-} 
+}

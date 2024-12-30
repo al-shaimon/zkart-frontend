@@ -6,19 +6,64 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/config/api';
+
+interface ContactFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<ContactFormData>({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success('Message sent successfully! We will get back to you soon.');
-    setLoading(false);
-    (e.target as HTMLFormElement).reset();
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message);
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+      } else {
+        toast.error(data.message || 'Failed to submit form');
+      }
+    } catch {
+      toast.error('Failed to submit form. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,6 +138,8 @@ export default function ContactPage() {
                       placeholder="John Doe"
                       required
                       className="w-full"
+                      value={formData.name}
+                      onChange={handleChange}
                     />
                   </div>
                   <div className="space-y-2">
@@ -106,6 +153,8 @@ export default function ContactPage() {
                       placeholder="john@example.com"
                       required
                       className="w-full"
+                      value={formData.email}
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
@@ -119,6 +168,8 @@ export default function ContactPage() {
                     placeholder="How can we help you?"
                     required
                     className="w-full"
+                    value={formData.subject}
+                    onChange={handleChange}
                   />
                 </div>
                 <div className="space-y-2">
@@ -131,6 +182,8 @@ export default function ContactPage() {
                     placeholder="Write your message here..."
                     required
                     className="w-full min-h-[150px]"
+                    value={formData.message}
+                    onChange={handleChange}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
