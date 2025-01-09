@@ -12,17 +12,36 @@ export default function HeroSection() {
   const slides = [
     {
       id: 1,
-      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1733523343/banner1_k2mvv8.jpg',
+      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1736457350/220_mcrftu.jpg',
       title: 'Flash Sale',
-      description: 'Get up to 50% off on selected items',
-      buttonText: 'Shop Now',
-      buttonLink: '#flash-sale',
+      description: 'Check out our latest products',
+      buttonText: 'Explore',
+      buttonLink: '#products',
       position: 'center',
     },
     {
       id: 2,
-      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1733523345/banner2_togcwl.jpg',
+      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1736457464/5706210_pgg5xa.jpg',
+      title: 'Flash Sale',
+      description: 'Check out our latest products',
+      buttonText: 'Explore',
+      buttonLink: '#products',
+      position: 'center',
+    },
+    {
+      id: 3,
+      image: 'https://res.cloudinary.com/dr4guscnl/image/upload/v1736457794/224_bdsqiv.jpg',
       title: 'New Arrivals',
+      description: 'Check out our latest products',
+      buttonText: 'Explore',
+      buttonLink: '#products',
+      position: 'center',
+    },
+    {
+      id: 4,
+      image:
+        'https://res.cloudinary.com/dr4guscnl/image/upload/v1736456494/sales-promotion-poster_2_v1daes.jpg',
+      title: 'Flash Sale',
       description: 'Check out our latest products',
       buttonText: 'Explore',
       buttonLink: '#products',
@@ -36,6 +55,7 @@ export default function HeroSection() {
         spaceBetween={0}
         centeredSlides={true}
         effect={'fade'}
+        loop={true}
         autoplay={{
           delay: 5000,
           disableOnInteraction: false,
@@ -52,12 +72,12 @@ export default function HeroSection() {
           <SwiperSlide key={slide.id}>
             <div className="relative w-full h-full group cursor-pointer overflow-hidden">
               {/* Image with overlay */}
-              <div className="absolute inset-0 bg-black/30 z-10 transition-opacity group-hover:bg-black/20" />
+              <div className="absolute inset-0" />
               <Image
                 src={slide.image}
                 alt={slide.title}
                 fill
-                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                className="object-cover transition-transform duration-700 group-hover:scale-100"
                 priority
                 sizes="100vw"
                 quality={100}

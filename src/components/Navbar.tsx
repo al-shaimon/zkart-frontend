@@ -255,7 +255,7 @@ export default function Navbar() {
         </div>
 
         {/* Bottom Row - Navigation Links */}
-        <div className="hidden md:flex items-center justify-center h-12 border-t border-primary-foreground/10">
+        <div className="hidden md:flex items-center justify-center h-12">
           <div className="flex items-center gap-8">
             {/* Categories Mega Menu - Desktop Only */}
             <div className="hidden md:block">
