@@ -2,14 +2,17 @@
 
 import { API_BASE_URL } from '@/config/api';
 import { Product } from '@/types/api';
+import { cookies } from 'next/headers';
 
 export async function getRecentlyViewedProducts(): Promise<Product[]> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  console.log({ token });
   try {
     const response = await fetch(`${API_BASE_URL}/recent-view`, {
-      //TODO: Have to implement the cookie based token check and pass the token in headers currently recently viewed products not functional
-      // headers: {
-      //   Authorization: `${localStorage.getItem('token')}`,
-      // },
+      headers: {
+        Authorization: token ? token.value : '',
+      },
       cache: 'no-store',
     });
 

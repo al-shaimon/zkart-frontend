@@ -5,17 +5,17 @@ import { ScrollToTop } from '@/components/ScrollToTop';
 import FollowedShopsProducts from '@/components/home/FollowedShopsProducts';
 import RecentlyViewedProducts from '@/components/home/RecentlyViewedProducts';
 import Footer from '@/components/Footer';
-import NewsLetterSection from '@/components/home/NewsLetterSection';
-import BlogSection from '@/components/home/BlogSection';
-import ProductsByCategory from '@/components/home/ProductsByCategory';
+// import NewsLetterSection from '@/components/home/NewsLetterSection';
+// import BlogSection from '@/components/home/BlogSection';
+// import ProductsByCategory from '@/components/home/ProductsByCategory';
 import { getCategories } from '@/actions/categories/getCategories';
 import { getFlashSaleProducts } from '@/actions/flash-sale/getFlashSaleProducts';
-// import { getRecentlyViewedProducts } from '@/actions/recently-viewed-products/getRecentlyViewedProducts';
+import { getRecentlyViewedProducts } from '@/actions/recently-viewed-products/getRecentlyViewedProducts';
 
 export default async function Home() {
   const categories = await getCategories();
   const flashSaleProducts = await getFlashSaleProducts();
-  // const recentlyViewedProducts = await getRecentlyViewedProducts();
+  const recentlyViewedProducts = await getRecentlyViewedProducts();
   return (
     <main className="min-h-screen">
       <HeroSection />
@@ -23,8 +23,8 @@ export default async function Home() {
       <div className="container mx-auto px-4">
         <CategorySection categories={categories} />
         <FlashSaleSection products={flashSaleProducts} />
-        {/* <RecentlyViewedProducts products={recentlyViewedProducts}/> */}
-        {/* <FollowedShopsProducts /> */}
+        <RecentlyViewedProducts products={recentlyViewedProducts}/>
+        <FollowedShopsProducts />
         {/* <ProductsByCategory /> */}
         {/* <BlogSection /> */}
         {/* <NewsLetterSection /> */}

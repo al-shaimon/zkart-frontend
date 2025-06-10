@@ -13,6 +13,8 @@ interface RecentViewProps {
 export default function RecentlyViewedProducts({ products, isLoading = false }: RecentViewProps) {
   const { isAuthenticated } = useAuth();
 
+  console.log({ products });
+
   if (!isAuthenticated || (!isLoading && products.length === 0)) {
     return null;
   }
@@ -25,7 +27,7 @@ export default function RecentlyViewedProducts({ products, isLoading = false }: 
           ? // Show skeletons while loading
             [...Array(4)].map((_, index) => <ProductSkeleton key={index} />)
           : // Show actual products
-            products.map((product) => <ProductCard key={product.id} product={product} />)}
+            products.map((product) => <ProductCard key={product.id} product={product.product} />)}
       </div>
     </section>
   );

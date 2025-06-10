@@ -1,4 +1,5 @@
 export interface Product {
+  product: Product;
   id: string;
   name: string;
   description: string;
@@ -75,4 +76,4 @@ export interface Review {
     name: string;
     profilePhoto: string;
   };
-} 
+}
