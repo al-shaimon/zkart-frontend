@@ -1,43 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { API_BASE_URL } from '@/config/api';
 import { Category } from '@/types/api';
 import CategorySkeleton from './CategorySkeleton';
 
-export default function CategorySection() {
+interface CategorySectionProps {
+  categories: Category[];
+  isLoading?: boolean;
+}
+
+export default function CategorySection({ categories, isLoading = false }: CategorySectionProps) {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/category`);
-        const data = await response.json();
-        setCategories(data.data || []);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCategories();
-  }, []);
 
   const handleCategoryClick = (categoryId: string) => {
     router.push(`/products?category=${categoryId}`);
   };
-
   return (
     <section className="py-8">
       <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
       <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
             {[...Array(10)].map((_, index) => (
               <CategorySkeleton key={index} />
