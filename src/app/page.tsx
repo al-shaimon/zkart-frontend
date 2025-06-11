@@ -13,16 +13,19 @@ import { getFlashSaleProducts } from '@/actions/flash-sale/getFlashSaleProducts'
 import { getRecentlyViewedProducts } from '@/actions/recently-viewed-products/getRecentlyViewedProducts';
 import { cookies } from 'next/headers';
 import { Product } from '@/types/api';
+import { getFollowedShopProducts } from '@/actions/followed-shop-products/getFollowedShopProducts';
 
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get('token');
   let recentlyViewedProducts: Product[] = [];
+  let followedShopsProducts: Product[] = [];
 
   const categories = await getCategories();
   const flashSaleProducts = await getFlashSaleProducts();
   if (token) {
     recentlyViewedProducts = await getRecentlyViewedProducts();
+    followedShopsProducts = await getFollowedShopProducts();
   }
   return (
     <main className="min-h-screen">
@@ -32,7 +35,7 @@ export default async function Home() {
         <CategorySection categories={categories} />
         <FlashSaleSection products={flashSaleProducts} />
         <RecentlyViewedProducts products={recentlyViewedProducts} />
-        <FollowedShopsProducts />
+        <FollowedShopsProducts products={followedShopsProducts} />
         {/* <ProductsByCategory /> */}
         {/* <BlogSection /> */}
         {/* <NewsLetterSection /> */}

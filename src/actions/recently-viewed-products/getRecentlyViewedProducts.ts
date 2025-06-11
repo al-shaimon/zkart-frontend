@@ -7,7 +7,6 @@ import { cookies } from 'next/headers';
 export async function getRecentlyViewedProducts(): Promise<Product[]> {
   const cookieStore = await cookies();
   const token = cookieStore.get('token');
-  console.log({ token });
   try {
     const response = await fetch(`${API_BASE_URL}/recent-view`, {
       headers: {

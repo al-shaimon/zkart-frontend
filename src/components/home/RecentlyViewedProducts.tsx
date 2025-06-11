@@ -13,8 +13,6 @@ interface RecentViewProps {
 export default function RecentlyViewedProducts({ products, isLoading = false }: RecentViewProps) {
   const { isAuthenticated } = useAuth();
 
-  console.log({ products });
-
   if (!isAuthenticated || (!isLoading && products.length === 0)) {
     return null;
   }
