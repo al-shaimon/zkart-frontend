@@ -11,11 +11,19 @@ import Footer from '@/components/Footer';
 import { getCategories } from '@/actions/categories/getCategories';
 import { getFlashSaleProducts } from '@/actions/flash-sale/getFlashSaleProducts';
 import { getRecentlyViewedProducts } from '@/actions/recently-viewed-products/getRecentlyViewedProducts';
+import { cookies } from 'next/headers';
+import { Product } from '@/types/api';
 
 export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  let recentlyViewedProducts: Product[] = [];
+
   const categories = await getCategories();
   const flashSaleProducts = await getFlashSaleProducts();
-  const recentlyViewedProducts = await getRecentlyViewedProducts();
+  if (token) {
+    recentlyViewedProducts = await getRecentlyViewedProducts();
+  }
   return (
     <main className="min-h-screen">
       <HeroSection />
@@ -23,7 +31,7 @@ export default async function Home() {
       <div className="container mx-auto px-4">
         <CategorySection categories={categories} />
         <FlashSaleSection products={flashSaleProducts} />
-        <RecentlyViewedProducts products={recentlyViewedProducts}/>
+        <RecentlyViewedProducts products={recentlyViewedProducts} />
         <FollowedShopsProducts />
         {/* <ProductsByCategory /> */}
         {/* <BlogSection /> */}
