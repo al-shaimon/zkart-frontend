@@ -12,7 +12,9 @@ export async function getFollowedShopProducts(): Promise<Product[]> {
       headers: {
         Authorization: token ? token.value : '',
       },
-      cache: 'no-store',
+      next: {
+        revalidate: 1800, // Cache for 30 minutes
+      },
     });
 
     if (!response.ok) {
@@ -26,7 +28,11 @@ export async function getFollowedShopProducts(): Promise<Product[]> {
     if (data.success && data.data.length > 0) {
       const followedShopsProducts = await Promise.all(
         data.data.map(async (followedShop: { shopId: string }) => {
-          const shopResponse = await fetch(`${API_BASE_URL}/shop/${followedShop.shopId}`);
+          const shopResponse = await fetch(`${API_BASE_URL}/shop/${followedShop.shopId}`, {
+            next: {
+              revalidate: 1800, // Cache shop data for 30 minutes
+            },
+          });
           const shopData = await shopResponse.json();
           const shop = shopData.data;
 

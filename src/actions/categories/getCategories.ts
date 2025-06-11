@@ -5,7 +5,11 @@ import { Category } from '@/types/api';
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/category`, { cache: 'no-store' });
+    const response = await fetch(`${API_BASE_URL}/category`, { 
+      next: { 
+        revalidate: 3600 // Cache for 1 hour
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch categories: ${response.status}`);

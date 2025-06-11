@@ -12,7 +12,9 @@ export async function getRecentlyViewedProducts(): Promise<Product[]> {
       headers: {
         Authorization: token ? token.value : '',
       },
-      cache: 'no-store',
+      next: {
+        revalidate: 300, // Cache for 5 minutes
+      },
     });
 
     if (!response.ok) {

@@ -6,7 +6,9 @@ import { Category, CategoryProducts } from '@/types/api';
 export async function getProductsByCategory(): Promise<CategoryProducts[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/category`, {
-      cache: 'no-store',
+      next: {
+        revalidate: 3600, // Cache for 1 hour
+      },
     });
 
     if (!response.ok) {
@@ -20,7 +22,11 @@ export async function getProductsByCategory(): Promise<CategoryProducts[]> {
     if (data.success) {
       // Fetch products for each category
       const categoriesPromises = data.data.map(async (category: Category) => {
-        const productsResponse = await fetch(`${API_BASE_URL}/category/${category.id}`);
+        const productsResponse = await fetch(`${API_BASE_URL}/category/${category.id}`, {
+          next: {
+            revalidate: 3600, // Cache for 1 hour
+          },
+        });
         const productsData = await productsResponse.json();
         return {
           ...category,

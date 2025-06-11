@@ -5,7 +5,11 @@ import { Product } from '@/types/api';
 
 export async function getFlashSaleProducts(): Promise<Product[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/product/flash-sale`, { cache: 'no-store' });
+    const response = await fetch(`${API_BASE_URL}/product/flash-sale`, { 
+      next: { 
+        revalidate: 900 // Cache for 15 minutes, since flash sales are time-sensitive
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch flash sale products: ${response.status}`);
