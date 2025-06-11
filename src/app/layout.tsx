@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/contexts/auth-context';
 import { CompareProvider } from '@/contexts/compare-context';
 import { CompareFloatingButton } from '@/components/CompareButton';
+import { getCategories } from '@/actions/categories/getCategories';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -21,14 +22,16 @@ export const metadata: Metadata = {
     'ZKart is an e-commerce platform offering a wide range of products from various vendors.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const categories = await getCategories();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} font-poppins antialiased bg-[#f2f4f8]`}>
         <Providers>
           <AuthProvider>
             <CompareProvider>
-              <Navbar />
+              <Navbar categories={categories} />
               {children}
               <Analytics />
               <Toaster
