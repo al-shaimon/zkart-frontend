@@ -25,6 +25,16 @@ export interface Category {
   image: string;
 }
 
+export interface CategoryProducts {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  products: Product[];
+}
 export interface ShopFollower {
   id: string;
   createdAt: string;
