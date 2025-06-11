@@ -6,7 +6,7 @@ import FollowedShopsProducts from '@/components/home/FollowedShopsProducts';
 import RecentlyViewedProducts from '@/components/home/RecentlyViewedProducts';
 import Footer from '@/components/Footer';
 // import NewsLetterSection from '@/components/home/NewsLetterSection';
-// import BlogSection from '@/components/home/BlogSection';
+import BlogSection from '@/components/home/BlogSection';
 import ProductsByCategory from '@/components/home/ProductsByCategory';
 import { getCategories } from '@/actions/categories/getCategories';
 import { getFlashSaleProducts } from '@/actions/flash-sale/getFlashSaleProducts';
@@ -25,6 +25,7 @@ export default async function Home() {
   const categories = await getCategories();
   const flashSaleProducts = await getFlashSaleProducts();
   const categoriesWithProducts = await getProductsByCategory();
+  
   if (token) {
     recentlyViewedProducts = await getRecentlyViewedProducts();
     followedShopsProducts = await getFollowedShopProducts();
@@ -39,7 +40,7 @@ export default async function Home() {
         <RecentlyViewedProducts products={recentlyViewedProducts} />
         <FollowedShopsProducts products={followedShopsProducts} />
         <ProductsByCategory categoriesWithProducts={categoriesWithProducts} />
-        {/* <BlogSection /> */}
+        <BlogSection />
         {/* <NewsLetterSection /> */}
       </div>
       <Footer />
