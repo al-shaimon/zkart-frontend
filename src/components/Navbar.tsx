@@ -22,7 +22,6 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import SearchCommand from './search/SearchCommand';
 import CartIcon from './cart/CartIcon';
-// import { API_BASE_URL } from '@/config/api';
 import { Category } from '@/types/api';
 import Image from 'next/image';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -37,28 +36,10 @@ export default function Navbar({ categories, loadingCategories = false }: Navbar
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  // const [categories, setCategories] = useState<Category[]>([]);
-  // const [loadingCategories, setLoadingCategories] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuth();
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-
-  // useEffect(() => {
-  //   async function fetchCategories() {
-  //     try {
-  //       const response = await fetch(`${API_BASE_URL}/category`);
-  //       const data = await response.json();
-  //       setCategories(data.data || []);
-  //     } catch (error) {
-  //       console.error('Failed to fetch categories:', error);
-  //     } finally {
-  //       setLoadingCategories(false);
-  //     }
-  //   }
-
-  //   fetchCategories();
-  // }, []);
 
   useEffect(() => {
     function handleClickOutside(event: PointerEvent) {
