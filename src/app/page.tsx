@@ -33,7 +33,6 @@ export default async function Home() {
   return (
     <main className="min-h-screen">
       <HeroSection />
-
       <div className="container mx-auto px-4">
         <CategorySection categories={categories} />
         <FlashSaleSection products={flashSaleProducts} />
