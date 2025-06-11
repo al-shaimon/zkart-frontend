@@ -53,7 +53,6 @@ export async function getFollowedShopProducts(): Promise<Product[]> {
       }
     }
 
-    console.log({ data: allProducts });
     return allProducts || [];
   } catch (error) {
     console.error('Error fetching followed shops products:', error);
