@@ -71,14 +71,14 @@ export default function Navbar({ categories, loadingCategories = false }: Navbar
     setIsMegaMenuOpen(false);
     setIsOpen(false);
     setIsMobileCategoriesOpen(false);
-    window.location.href = `/products?category=${categoryId}`;
+    router.push(`/products?category=${categoryId}`);
   };
 
   const handleProductClick = () => {
     setIsMegaMenuOpen(false);
     setIsOpen(false);
     setIsMobileCategoriesOpen(false);
-    window.location.href = '/products';
+    router.push('/products');
   };
 
   const renderAuthLinks = () => {
