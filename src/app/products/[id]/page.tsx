@@ -1,68 +1,72 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Store } from 'lucide-react';
-import { Product } from '@/types/api';
-import { API_BASE_URL } from '@/config/api';
 import Rating from '@/components/ui/Rating';
 import ProductImageGallery from '@/components/products/ProductImageGallery';
 import RelatedProducts from '@/components/products/RelatedProducts';
 import ProductReviews from '@/components/products/ProductReviews';
-import ProductDetailsSkeleton from '@/components/products/ProductDetailsSkeleton';
 import AddToCartButton from '@/components/products/AddToCartButton';
-import { useAuth } from '@/contexts/auth-context';
 import CompareButton from '@/components/products/CompareButton';
+import ProductViewTracker from '@/components/products/ProductViewTracker';
+import { getProduct } from '@/actions/products/getProduct';
+import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 
-export default function ProductDetails() {
-  const { id } = useParams();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { isAuthenticated, user } = useAuth();
+interface ProductDetailsProps {
+  params: {
+    id: string;
+  };
+}
 
-  useEffect(() => {
-    async function fetchProduct() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/product/${id}?include=reviews,images`);
-        const data = await response.json();
-        setProduct(data.data);
-
-        // Record view if user is authenticated
-        if (isAuthenticated && user?.role === 'CUSTOMER') {
-          await fetch(`${API_BASE_URL}/recent-view`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify({
-              productId: id,
-            }),
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch product:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (id) {
-      fetchProduct();
-    }
-  }, [id, isAuthenticated, user]);
-
-  if (loading) {
-    return <ProductDetailsSkeleton />;
-  }
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ProductDetailsProps): Promise<Metadata> {
+  const product = await getProduct(params.id);
 
   if (!product) {
-    return <div>Product not found</div>;
+    return {
+      title: 'Product Not Found',
+      description: 'The requested product could not be found.',
+    };
   }
 
+  const effectivePrice =
+    product.isFlashSale &&
+    product.flashSalePrice &&
+    product.flashSaleEnds &&
+    new Date() < new Date(product.flashSaleEnds)
+      ? product.flashSalePrice
+      : product.discount && product.discount > 0
+      ? Math.round(product.price * (1 - product.discount / 100))
+      : product.price;
+
+  return {
+    title: `${product.name} - ৳${effectivePrice} | ZKart`,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      images: [
+        {
+          url: product.image,
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+    },
+  };
+}
+
+export default async function ProductDetails({ params }: ProductDetailsProps) {
+  const product = await getProduct(params.id);
+
+  if (!product) {
+    notFound();
+  }
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Track product view for authenticated customers */}
+      <ProductViewTracker productId={params.id} />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Product Images */}
         <ProductImageGallery images={product.images} />
@@ -96,13 +100,28 @@ export default function ProductDetails() {
           </div>
 
           <div className="flex items-center gap-4">
-            {product.flashSalePrice ? (
+            {/* Handle both flash sale and regular discount */}
+            {product.isFlashSale &&
+            product.flashSalePrice &&
+            product.flashSaleEnds &&
+            new Date() < new Date(product.flashSaleEnds) ? (
               <>
                 <span className="text-2xl font-bold text-red-500">৳{product.flashSalePrice}</span>
                 <span className="text-lg text-muted-foreground line-through">৳{product.price}</span>
                 <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm">
+                  Flash Sale -{' '}
                   {Math.round(((product.price - product.flashSalePrice) / product.price) * 100)}%
                   OFF
+                </span>
+              </>
+            ) : product.discount && product.discount > 0 ? (
+              <>
+                <span className="text-2xl font-bold text-green-600">
+                  ৳{Math.round(product.price * (1 - product.discount / 100))}
+                </span>
+                <span className="text-lg text-muted-foreground line-through">৳{product.price}</span>
+                <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">
+                  {product.discount}% OFF
                 </span>
               </>
             ) : (
