@@ -4,16 +4,18 @@ import { Loader2 } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface ProductsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     search?: string;
     category?: string;
     minPrice?: string;
     maxPrice?: string;
-  };
+  }>;
 }
 
-export default function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const resolvedSearchParams = await searchParams;
+
   return (
     <>
       <div className="container mx-auto px-4 py-8">
@@ -27,6 +29,7 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
         </div>
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
+            {' '}
             <Suspense
               fallback={
                 <div className="container mx-auto px-4 py-16 text-center">
@@ -35,7 +38,7 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                 </div>
               }
             >
-              <ProductGrid searchParams={searchParams} />
+              <ProductGrid searchParams={resolvedSearchParams} />
             </Suspense>
           </div>
         </div>

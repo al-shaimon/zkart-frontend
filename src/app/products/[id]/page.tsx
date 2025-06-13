@@ -12,14 +12,15 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 
 interface ProductDetailsProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: ProductDetailsProps): Promise<Metadata> {
-  const product = await getProduct(params.id);
+  const { id } = await params;
+  const product = await getProduct(id);
 
   if (!product) {
     return {
@@ -57,7 +58,8 @@ export async function generateMetadata({ params }: ProductDetailsProps): Promise
 }
 
 export default async function ProductDetails({ params }: ProductDetailsProps) {
-  const product = await getProduct(params.id);
+  const { id } = await params;
+  const product = await getProduct(id);
 
   if (!product) {
     notFound();
@@ -65,7 +67,7 @@ export default async function ProductDetails({ params }: ProductDetailsProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Track product view for authenticated customers */}
-      <ProductViewTracker productId={params.id} />
+      <ProductViewTracker productId={id} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Product Images */}

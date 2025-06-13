@@ -13,7 +13,7 @@ export async function getRecentlyViewedProducts(): Promise<Product[]> {
         Authorization: token ? token.value : '',
       },
       next: {
-        revalidate: 300, // Revalidate every 5 minutes
+        revalidate: 5, // Revalidate every 5 seconds
         // This tag can be used to revalidate the cache for recently viewed products
         tags: ['recently-viewed-products'],
       },
