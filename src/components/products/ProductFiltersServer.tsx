@@ -13,19 +13,6 @@ import { Label } from '@/components/ui/label';
 
 interface ProductFiltersServerProps {
   categories: Category[];
-  initialFilters?: {
-    search: string;
-    categoryIds: string[];
-    minPrice?: number;
-    maxPrice?: number;
-  };
-}
-
-export interface FilterOptions {
-  search: string;
-  categoryIds: string[];
-  minPrice?: number;
-  maxPrice?: number;
 }
 
 const PRICE_RANGES = [
@@ -36,21 +23,15 @@ const PRICE_RANGES = [
   { id: 'range4', label: 'Above ৳90k', min: 90000, max: undefined },
 ];
 
-export default function ProductFiltersServer({
-  categories,
-  initialFilters,
-}: ProductFiltersServerProps) {
+export default function ProductFiltersServer({ categories }: ProductFiltersServerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Initialize from URL params
+  const [isOpen, setIsOpen] = useState(false); // Initialize from URL params
   const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
     const category = searchParams.get('category');
-    return category ? [category] : initialFilters?.categoryIds || [];
+    return category ? category.split(',').filter(Boolean) : [];
   });
-
   const [currentPriceRange, setCurrentPriceRange] = useState<string>(() => {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
@@ -58,11 +39,44 @@ export default function ProductFiltersServer({
     if (!minPrice && !maxPrice) return 'all';
 
     return (
-      PRICE_RANGES.find(
-        (range) => range.min?.toString() === minPrice && range.max?.toString() === maxPrice
-      )?.id || 'all'
+      PRICE_RANGES.find((range) => {
+        const rangeMinStr = range.min?.toString();
+        const rangeMaxStr = range.max?.toString();
+
+        // Handle the case where maxPrice is undefined for "Above ৳90k"
+        if (range.max === undefined) {
+          return rangeMinStr === minPrice && !maxPrice;
+        }
+
+        return rangeMinStr === minPrice && rangeMaxStr === maxPrice;
+      })?.id || 'all'
     );
-  });
+  }); // Sync state with URL params when they change
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const newSelectedCategories = category ? category.split(',').filter(Boolean) : [];
+    setSelectedCategories(newSelectedCategories);
+
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+
+    if (!minPrice && !maxPrice) {
+      setCurrentPriceRange('all');
+    } else {
+      const matchingRange = PRICE_RANGES.find((range) => {
+        const rangeMinStr = range.min?.toString();
+        const rangeMaxStr = range.max?.toString();
+
+        // Handle the case where maxPrice is undefined for "Above ৳90k"
+        if (range.max === undefined) {
+          return rangeMinStr === minPrice && !maxPrice;
+        }
+
+        return rangeMinStr === minPrice && rangeMaxStr === maxPrice;
+      });
+      setCurrentPriceRange(matchingRange?.id || 'all');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -89,7 +103,6 @@ export default function ProductFiltersServer({
 
     router.push(`?${params.toString()}`);
   };
-
   const toggleCategory = (categoryId: string) => {
     const newSelectedCategories = selectedCategories.includes(categoryId)
       ? selectedCategories.filter((id) => id !== categoryId)
@@ -100,11 +113,9 @@ export default function ProductFiltersServer({
     // Update URL with new category selection
     if (newSelectedCategories.length === 0) {
       updateURL({ category: undefined });
-    } else if (newSelectedCategories.length === 1) {
-      updateURL({ category: newSelectedCategories[0] });
     } else {
-      // For multiple categories, we'll use the first one for simplicity
-      updateURL({ category: newSelectedCategories[0] });
+      // For multiple categories, join them with commas
+      updateURL({ category: newSelectedCategories.join(',') });
     }
   };
 
@@ -120,16 +131,23 @@ export default function ProductFiltersServer({
     }
     router.push(`?${params.toString()}`);
   };
-
   const handlePriceRangeChange = (rangeId: string) => {
     setCurrentPriceRange(rangeId);
 
     const selectedRange = PRICE_RANGES.find((range) => range.id === rangeId);
     if (selectedRange) {
-      updateURL({
-        minPrice: selectedRange.min?.toString(),
-        maxPrice: selectedRange.max?.toString(),
-      });
+      if (selectedRange.id === 'all') {
+        // Clear price filters for "All Prices"
+        updateURL({
+          minPrice: undefined,
+          maxPrice: undefined,
+        });
+      } else {
+        updateURL({
+          minPrice: selectedRange.min?.toString(),
+          maxPrice: selectedRange.max?.toString(),
+        });
+      }
     }
     setIsOpen(false);
   };

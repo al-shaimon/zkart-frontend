@@ -38,12 +38,16 @@ export async function getProducts(params: GetProductsParams = {}): Promise<GetPr
     }
 
     let products: Product[] = [];
-    let totalProducts = 0;
+    let totalProducts = 0; // Parse category IDs from comma-separated string if needed
+    let parsedCategoryIds: string[] = [];
+    if (categoryIds && categoryIds.length > 0) {
+      parsedCategoryIds = categoryIds.flatMap((id) => id.split(',').filter(Boolean));
+    }
 
     // If categories are selected, fetch products for each category
-    if (categoryIds && categoryIds.length > 0) {
+    if (parsedCategoryIds.length > 0) {
       // Fetch products for all selected categories
-      const categoryPromises = categoryIds.map((categoryId) =>
+      const categoryPromises = parsedCategoryIds.map((categoryId) =>
         fetch(`${API_BASE_URL}/category/${categoryId}`, {
           next: {
             revalidate: 1800, // Cache for 30 minutes
@@ -60,6 +64,12 @@ export async function getProducts(params: GetProductsParams = {}): Promise<GetPr
         }
         return allProducts;
       }, []);
+
+      // Remove duplicates based on product ID
+      const uniqueProducts = products.filter(
+        (product, index, self) => index === self.findIndex((p) => p.id === product.id)
+      );
+      products = uniqueProducts;
 
       // Apply other filters
       if (searchTerm) {
