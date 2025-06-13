@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { API_BASE_URL } from '@/config/api';
+import { revalidateRecentlyViewedProducts } from '@/actions/revalidate/revalidateRecentlyViewed';
 
 interface ProductViewTrackerProps {
   productId: string;
@@ -15,7 +16,7 @@ export default function ProductViewTracker({ productId }: ProductViewTrackerProp
     const recordView = async () => {
       if (isAuthenticated && user?.role === 'CUSTOMER') {
         try {
-          await fetch(`${API_BASE_URL}/recent-view`, {
+          const response = await fetch(`${API_BASE_URL}/recent-view`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -25,6 +26,11 @@ export default function ProductViewTracker({ productId }: ProductViewTrackerProp
               productId,
             }),
           });
+
+          // If the view was recorded successfully, revalidate the cache
+          if (response.ok) {
+            await revalidateRecentlyViewedProducts();
+          }
         } catch (error) {
           console.error('Failed to record product view:', error);
         }

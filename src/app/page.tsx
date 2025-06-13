@@ -15,7 +15,6 @@ import {
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get('token');
-
   return (
     <main className="min-h-screen">
       <HeroSection />

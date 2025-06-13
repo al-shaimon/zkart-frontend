@@ -2,8 +2,8 @@
 
 import { API_BASE_URL } from '@/config/api';
 import { Product } from '@/types/api';
-import { cookies } from 'next/headers';
 import { revalidateTag } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export async function getProduct(productId: string): Promise<Product | null> {
   try {
@@ -44,9 +44,7 @@ export async function recordProductView(productId: string): Promise<void> {
         productId,
       }),
     });
-
-    // Revalidate the tag for recently viewed products
-    revalidateTag('recently-viewed-products');
+    revalidateTag('recently-viewed-products'); // Revalidate the cache for recently viewed products
   } catch (error) {
     console.error('Error recording product view:', error);
     // Don't throw error, just log it as this is not critical
