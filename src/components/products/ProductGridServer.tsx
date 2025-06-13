@@ -1,10 +1,11 @@
-import React from 'react';
+import { Suspense } from 'react';
 import ProductCard from './ProductCard';
+import ProductSkeleton from './ProductSkeleton';
 import ProductFiltersServer from './ProductFiltersServer';
-import { getProducts } from '@/actions/products/getProducts';
-import ProductPagination from './ProductPagination';
+import { getProducts, GetProductsParams } from '@/actions/products/getProducts';
+import ProductPagination from '@/components/products/ProductPagination';
 
-interface ProductGridProps {
+interface ProductGridServerProps {
   searchParams?: {
     page?: string;
     search?: string;
@@ -14,8 +15,8 @@ interface ProductGridProps {
   };
 }
 
-export default async function ProductGrid({ searchParams }: ProductGridProps) {
-  const params = {
+async function ProductGridContent({ searchParams }: ProductGridServerProps) {
+  const params: GetProductsParams = {
     page: searchParams?.page ? parseInt(searchParams.page) : 1,
     searchTerm: searchParams?.search,
     categoryIds: searchParams?.category ? [searchParams.category] : undefined,
@@ -49,5 +50,30 @@ export default async function ProductGrid({ searchParams }: ProductGridProps) {
         )}
       </div>
     </div>
+  );
+}
+
+function ProductGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
+      <div className="space-y-6">
+        <div className="h-64 bg-gray-200 animate-pulse rounded"></div>
+      </div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(12)].map((_, index) => (
+            <ProductSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductGridServer(props: ProductGridServerProps) {
+  return (
+    <Suspense fallback={<ProductGridSkeleton />}>
+      <ProductGridContent {...props} />
+    </Suspense>
   );
 }
