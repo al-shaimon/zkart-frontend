@@ -3,6 +3,27 @@
 import { API_BASE_URL } from '@/config/api';
 import { Product, Category } from '@/types/api';
 
+// Helper function to calculate the effective price (considering discounts and flash sales)
+const getEffectivePrice = (product: Product): number => {
+  // Check if it's a flash sale and the sale is still active
+  if (product.isFlashSale && product.flashSalePrice && product.flashSaleEnds) {
+    const now = new Date();
+    const flashSaleEnd = new Date(product.flashSaleEnds);
+    if (now < flashSaleEnd) {
+      return product.flashSalePrice;
+    }
+  }
+
+  // Check if there's a regular discount
+  if (product.discount && product.discount > 0) {
+    const discountedPrice = product.price * (1 - product.discount / 100);
+    return Math.round(discountedPrice * 100) / 100; // Round to 2 decimal places
+  }
+
+  // Return original price if no discounts
+  return product.price;
+};
+
 export interface GetProductsParams {
   page?: number;
   limit?: number;
@@ -69,42 +90,27 @@ export async function getProducts(params: GetProductsParams = {}): Promise<GetPr
       const uniqueProducts = products.filter(
         (product, index, self) => index === self.findIndex((p) => p.id === product.id)
       );
-      products = uniqueProducts;
-
-      // Apply other filters
+      products = uniqueProducts; // Apply other filters
       if (searchTerm) {
         products = products.filter((product) =>
           product.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
       }
       if (minPrice !== undefined) {
-        products = products.filter((product) => product.price >= minPrice);
+        products = products.filter((product) => getEffectivePrice(product) >= minPrice);
       }
       if (maxPrice !== undefined) {
-        products = products.filter((product) => product.price <= maxPrice);
+        products = products.filter((product) => getEffectivePrice(product) <= maxPrice);
       }
 
-      totalProducts = products.length;
-
-      // Apply pagination manually for category-filtered products
+      totalProducts = products.length; // Apply pagination manually for category-filtered products
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
       products = products.slice(startIndex, endIndex);
     } else {
-      // Use regular product API with server-side pagination
-      let url = `${API_BASE_URL}/product?page=${page}&limit=${limit}`;
-
-      if (searchTerm) {
-        url += `&searchTerm=${searchTerm}`;
-      }
-      if (minPrice !== undefined) {
-        url += `&minPrice=${minPrice}`;
-      }
-      if (maxPrice !== undefined) {
-        url += `&maxPrice=${maxPrice}`;
-      }
-
-      const response = await fetch(url, {
+      // When no categories are selected, fetch all products and filter client-side
+      // This ensures consistent pricing logic (effective price consideration)
+      const response = await fetch(`${API_BASE_URL}/product?limit=1000`, {
         next: {
           revalidate: 1800, // Cache for 30 minutes
         },
@@ -113,8 +119,31 @@ export async function getProducts(params: GetProductsParams = {}): Promise<GetPr
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          products = data.data;
-          totalProducts = data.meta.total;
+          let allProducts = data.data;
+
+          // Apply filters using effective pricing
+          if (searchTerm) {
+            allProducts = allProducts.filter((product: Product) =>
+              product.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          }
+          if (minPrice !== undefined) {
+            allProducts = allProducts.filter(
+              (product: Product) => getEffectivePrice(product) >= minPrice
+            );
+          }
+          if (maxPrice !== undefined) {
+            allProducts = allProducts.filter(
+              (product: Product) => getEffectivePrice(product) <= maxPrice
+            );
+          }
+
+          totalProducts = allProducts.length;
+
+          // Apply pagination
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          products = allProducts.slice(startIndex, endIndex);
         }
       }
     }
