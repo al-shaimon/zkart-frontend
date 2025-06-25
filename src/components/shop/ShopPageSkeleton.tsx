@@ -13,7 +13,7 @@ export default function ShopPageSkeleton() {
           <div className="flex-grow text-center md:text-left">
             <Skeleton className="h-8 w-64 mb-2" />
             <Skeleton className="h-16 w-full mb-4" />
-            
+
             <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start">
               <Skeleton className="h-5 w-24" />
               <Skeleton className="h-5 w-20" />

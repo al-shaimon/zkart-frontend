@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
@@ -8,7 +8,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { followShop, unfollowShop } from '@/actions/shops/followActions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '@/config/api';
 
 interface FollowButtonClientProps {
   shopId: string;
@@ -25,38 +24,7 @@ export default function FollowButtonClient({
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isPending, startTransition] = useTransition();
-  const [isLoading, setIsLoading] = useState(false);
   const isCustomer = user?.role === 'CUSTOMER';
-
-  // Check actual following status when component mounts
-  useEffect(() => {
-    const checkFollowingStatus = async () => {
-      if (!isAuthenticated || !user?.email) {
-        setIsFollowing(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/shop/${shopId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          // Check if current user is in followers list
-          const isUserFollowing = data.data.followers.some(
-            (follower: { customer?: { email: string } }) => follower.customer?.email === user.email
-          );
-          setIsFollowing(isUserFollowing);
-        }
-      } catch (error) {
-        console.error('Failed to check following status:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkFollowingStatus();
-  }, [shopId, user?.email, isAuthenticated]);
 
   const handleClick = () => {
     if (!isAuthenticated) {
@@ -70,6 +38,10 @@ export default function FollowButtonClient({
       return;
     }
 
+    // Optimistic update - update UI immediately
+    const newFollowingState = !isFollowing;
+    setIsFollowing(newFollowingState);
+
     startTransition(async () => {
       try {
         if (isFollowing) {
@@ -79,8 +51,9 @@ export default function FollowButtonClient({
           await followShop(shopId);
           toast.success('Shop followed successfully');
         }
-        setIsFollowing(!isFollowing);
       } catch (error) {
+        // Revert optimistic update on error
+        setIsFollowing(isFollowing);
         toast.error(error instanceof Error ? error.message : 'Something went wrong');
       }
     });
@@ -115,9 +88,9 @@ export default function FollowButtonClient({
       variant={isFollowing ? 'secondary' : 'outline'}
       className={className}
       onClick={handleClick}
-      disabled={isPending || isLoading}
+      disabled={isPending}
     >
-      {isPending || isLoading ? (
+      {isPending ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : isFollowing ? (
         'Following'
