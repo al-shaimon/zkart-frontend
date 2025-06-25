@@ -49,14 +49,31 @@ export async function getShop(id: string): Promise<ShopWithFollowStatus | null> 
         if (userResponse.ok) {
           const userData = await userResponse.json();
           if (userData.success && userData.data) {
+            // More robust checking - check both email and ID if available
+            const currentUserEmail = userData.data.email;
+            const currentUserId = userData.data.id;
+
             isFollowedByCurrentUser = shop.followers.some(
-              (follower: { customer?: { email: string } }) =>
-                follower.customer?.email === userData.data.email
+              (follower: { customer?: { email: string; id?: string }; customerId?: string }) => {
+                // Check by customer email
+                if (follower.customer?.email === currentUserEmail) {
+                  return true;
+                }
+                // Check by customer ID if available
+                if (
+                  currentUserId &&
+                  (follower.customer?.id === currentUserId || follower.customerId === currentUserId)
+                ) {
+                  return true;
+                }
+                return false;
+              }
             );
           }
         }
       } catch (error) {
         console.error('Error checking follow status:', error);
+        // Don't throw error, just log it and continue with false
       }
     }
 

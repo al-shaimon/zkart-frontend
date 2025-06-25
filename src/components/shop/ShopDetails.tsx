@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import { Users } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
-import FollowButtonClient from './FollowButtonClient';
+// import FollowButtonClient from './FollowButtonClient';
 import { getShop } from '@/actions/shops/getShop';
+import FollowButton from '@/components/shop/FollowButton';
 
 interface ShopDetailsProps {
   shopId: string;
@@ -57,7 +58,12 @@ export default async function ShopDetails({ shopId }: ShopDetailsProps) {
           </div>
 
           {/* Follow Button */}
-          <FollowButtonClient
+          {/* <FollowButtonClient
+            shopId={shop.id}
+            isFollowing={shop.isFollowedByCurrentUser}
+            className="min-w-[120px]"
+          /> */}
+          <FollowButton
             shopId={shop.id}
             isFollowing={shop.isFollowedByCurrentUser}
             className="min-w-[120px]"
