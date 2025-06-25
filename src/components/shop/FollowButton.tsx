@@ -22,7 +22,7 @@ export default function FollowButton({
   className,
   onFollowChange,
 }: FollowButtonProps) {
-  const {  followShop, unfollowShop, isCustomer } = useShopFollow();
+  const { followShop, unfollowShop, isCustomer } = useShopFollow();
   const { isAuthenticated, user } = useAuth();
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,12 +31,12 @@ export default function FollowButton({
   useEffect(() => {
     const fetchShopDetails = async () => {
       if (!user?.email) return;
-      
+
       try {
         setIsLoading(true);
         const response = await fetch(`${API_BASE_URL}/shop/${shopId}`);
         const data = await response.json();
-        
+
         if (data.success) {
           // Check if current user is in followers list
           const isUserFollowing = data.data.followers.some(
