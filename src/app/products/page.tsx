@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import ProductGrid from '@/components/products/ProductGrid';
-import { Loader2 } from 'lucide-react';
+import ProductGridSkeleton from '@/components/products/ProductGridSkeleton';
 import Footer from '@/components/Footer';
 
 interface ProductsPageProps {
@@ -30,14 +30,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
             {' '}
-            <Suspense
-              fallback={
-                <div className="container mx-auto px-4 py-16 text-center">
-                  <Loader2 className="w-16 h-16 animate-spin mx-auto" />
-                  <p className="mt-4">Loading products...</p>
-                </div>
-              }
-            >
+            <Suspense fallback={<ProductGridSkeleton />}>
               <ProductGrid searchParams={resolvedSearchParams} />
             </Suspense>
           </div>
