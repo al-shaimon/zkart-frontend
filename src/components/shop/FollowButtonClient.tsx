@@ -38,7 +38,7 @@ export default function FollowButtonClient({
 
     // Store previous state for potential rollback
     const previousState = isFollowing;
-    
+
     // Optimistic update - update UI immediately
     setIsFollowing(!isFollowing);
 
